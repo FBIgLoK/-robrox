@@ -548,71 +548,74 @@ searchPlayerButton.Font = Enum.Font.SourceSans
 searchPlayerButton.TextSize = 18
 searchPlayerButton.Parent = aimTab
 
--- TP Button
-local tpButton = Instance.new("TextButton")
-tpButton.Name = "TPButton"
-tpButton.Text = "/tp"
-tpButton.Size = UDim2.new(1, -20, 0, 30)
-tpButton.Position = UDim2.new(0, 10, 0, 80)
-tpButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-tpButton.BackgroundTransparency = 0
-tpButton.BorderSizePixel = 1
-tpButton.BorderColor3 = Color3.fromRGB(128, 0, 128)
-tpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-tpButton.Font = Enum.Font.SourceSans
-tpButton.TextSize = 18
-tpButton.Parent = aimTab
-
 local playerList = Instance.new("ScrollingFrame")
 playerList.Name = "PlayerList"
-playerList.Size = UDim2.new(1, -20, 0, 100)
-playerList.Position = UDim2.new(0, 10, 0, 80)
-playerList.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+playerList.Size = UDim2.new(1, -20, 0, 200)
+playerList.Position = UDim2.new(0, 10, 0, 85)
+playerList.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 playerList.BackgroundTransparency = 0
 playerList.BorderSizePixel = 0
 playerList.Visible = false
 playerList.ZIndex = 10
 playerList.CanvasSize = UDim2.new(0, 0, 0, 0)
 playerList.ScrollBarThickness = 6
+playerList.ScrollBarImageTransparency = 0.3
 playerList.Parent = aimTab
 
-tpButton.MouseButton1Click:Connect(function()
-	if _G.SelectedPlayer and _G.SelectedPlayer.Character and _G.SelectedPlayer.Character:FindFirstChild("HumanoidRootPart") then
-		localPlayer.Character.HumanoidRootPart.CFrame = _G.SelectedPlayer.Character.HumanoidRootPart.CFrame
-	end
+local layout = Instance.new("UIListLayout", playerList)
+layout.Padding = UDim.new(0, 6)
+
+layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+	playerList.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 5)
 end)
 
-local listLayout = Instance.new("UIListLayout")
-listLayout.FillDirection = Enum.FillDirection.Vertical
-listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-listLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-listLayout.Padding = UDim.new(0, 5)
-listLayout.Parent = playerList
+-- Função de teleport
+local function teleportToPlayer(target)
+	if target == localPlayer then return end
+	if not target.Character or not localPlayer.Character then return end
 
-local function populatePlayerList()
-	for _, child in pairs(playerList:GetChildren()) do
-		if child:IsA("TextButton") then
-			child:Destroy()
+	local myRoot = localPlayer.Character:FindFirstChild("HumanoidRootPart")
+	local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
+
+	if myRoot and targetRoot then
+		myRoot.CFrame = targetRoot.CFrame * CFrame.new(0, 0, -3)
+	end
+end
+
+-- Criar botão
+local function createButton(player)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(1, -4, 0, 36)
+	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	btn.TextColor3 = Color3.new(1,1,1)
+	btn.Font = Enum.Font.SourceSans
+	btn.TextSize = 18
+	btn.Parent = playerList
+
+	local c = Instance.new("UICorner", btn)
+	c.CornerRadius = UDim.new(0, 8)
+
+	if player == localPlayer then
+		btn.Text = player.Name .. " (Você)"
+		btn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+	else
+		btn.Text = player.Name
+		btn.MouseButton1Click:Connect(function()
+			teleportToPlayer(player)
+		end)
+	end
+end
+
+-- Atualizar lista
+local function refreshPlayers()
+	for _, v in pairs(playerList:GetChildren()) do
+		if v:IsA("TextButton") then
+			v:Destroy()
 		end
 	end
+
 	for _, player in pairs(Players:GetPlayers()) do
-		local btn = Instance.new("TextButton")
-		btn.Name = "PlayerButton_" .. player.Name
-		btn.Text = player.Name
-		btn.Size = UDim2.new(1, 0, 0, 30)
-		btn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-		btn.BackgroundTransparency = 0
-		btn.BorderSizePixel = 1
-		btn.BorderColor3 = Color3.fromRGB(128, 0, 128)
-		btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-		btn.Font = Enum.Font.SourceSans
-		btn.TextSize = 16
-		btn.Parent = playerList
-		btn.MouseButton1Click:Connect(function()
-			_G.SelectedPlayer = player
-			searchPlayerButton.Text = "procurar player: " .. player.Name .. " ▼"
-			playerList.Visible = false
-		end)
+		createButton(player)
 	end
 end
 
@@ -620,10 +623,17 @@ searchPlayerButton.MouseButton1Click:Connect(function()
 	if playerList.Visible then
 		playerList.Visible = false
 	else
-		populatePlayerList()
+		refreshPlayers()
 		playerList.Visible = true
 	end
 end)
+
+-- Inicialização
+task.wait(1)
+refreshPlayers()
+
+Players.PlayerAdded:Connect(refreshPlayers)
+Players.PlayerRemoving:Connect(refreshPlayers)
 
 -- Toggle AIM Bot
 createToggleRow(aimTab, 190, "HS Pescoço do uriel", "AIMBot", "UpdateAIMBot")
