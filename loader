@@ -538,11 +538,64 @@ createToggleRow(aimTab, 50, "AIM Bot", "AIMBot", "UpdateAIMBot")
 _G.UpdateAIMBot = function()
 	if _G.AIMBot then
 		-- Enable AIM Bot
-		-- Placeholder for AIM Bot logic
 		print("AIM Bot enabled")
+
+		-- Create crosshair if not exists
+		local crosshairGui = localPlayer:WaitForChild("PlayerGui"):FindFirstChild("AIMCrosshair")
+		if not crosshairGui then
+			crosshairGui = Instance.new("ScreenGui")
+			crosshairGui.Name = "AIMCrosshair"
+			crosshairGui.Parent = localPlayer.PlayerGui
+
+			local crosshair = Instance.new("TextLabel")
+			crosshair.Text = "+"
+			crosshair.Size = UDim2.new(0, 20, 0, 20)
+			crosshair.Position = UDim2.new(0.5, -10, 0.5, -10)
+			crosshair.BackgroundTransparency = 1
+			crosshair.TextColor3 = Color3.new(1, 1, 1)
+			crosshair.Font = Enum.Font.SourceSansBold
+			crosshair.TextSize = 24
+			crosshair.Parent = crosshairGui
+		end
+
+		-- Start aiming loop
+		if not _G.AimConnection then
+			_G.AimConnection = RunService.RenderStepped:Connect(function()
+				local camera = workspace.CurrentCamera
+				local closestPlayer = nil
+				local minDist = math.huge
+				for _, player in pairs(Players:GetPlayers()) do
+					if player ~= localPlayer and player.Character and player.Character:FindFirstChild("Head") then
+						local dist = (player.Character.Head.Position - camera.CFrame.Position).Magnitude
+						if dist < minDist then
+							minDist = dist
+							closestPlayer = player
+						end
+					end
+				end
+				if closestPlayer then
+					local headPos = closestPlayer.Character.Head.Position
+					local lookVector = (headPos - camera.CFrame.Position).Unit
+					local newCFrame = CFrame.new(camera.CFrame.Position, camera.CFrame.Position + lookVector)
+					camera.CFrame = newCFrame
+				end
+			end)
+		end
 	else
 		-- Disable AIM Bot
 		print("AIM Bot disabled")
+
+		-- Remove crosshair
+		local crosshairGui = localPlayer.PlayerGui:FindFirstChild("AIMCrosshair")
+		if crosshairGui then
+			crosshairGui:Destroy()
+		end
+
+		-- Stop aiming
+		if _G.AimConnection then
+			_G.AimConnection:Disconnect()
+			_G.AimConnection = nil
+		end
 	end
 end
 
