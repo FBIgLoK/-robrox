@@ -1,12 +1,17 @@
-local player = game.Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local localPlayer = Players.LocalPlayer
+local playerGui = localPlayer:WaitForChild("PlayerGui")
 
+-- Criar ScreenGui principal do menu
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "MenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
 
+-- Frame principal do menu
 local frame = Instance.new("Frame")
 frame.Name = "MenuFrame"
 frame.Size = UDim2.new(0, 700, 0, 420)
@@ -48,10 +53,11 @@ frame.InputChanged:Connect(function(input)
 	end
 end)
 
+-- Título do menu
 local title = Instance.new("TextLabel")
 title.Name = "Title"
 title.Text = "Fbi UwU HUB"
-title.Size = UDim2.new(1, 0, 0, 40)
+title.Size = UDim2.new(1, -50, 0, 40)
 title.Position = UDim2.new(0, 0, 0, 0)
 title.BackgroundTransparency = 1
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -60,15 +66,59 @@ title.TextSize = 24
 title.TextScaled = false
 title.Parent = frame
 
+-- Botão de minimizar
+local minimizeButton = Instance.new("TextButton")
+minimizeButton.Name = "MinimizeButton"
+minimizeButton.Text = "-"
+minimizeButton.Size = UDim2.new(0, 40, 0, 40)
+minimizeButton.Position = UDim2.new(1, -40, 0, 0)
+minimizeButton.BackgroundTransparency = 1
+minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeButton.Font = Enum.Font.SourceSansBold
+minimizeButton.TextSize = 24
+minimizeButton.Parent = frame
+
+-- Botão de restaurar (inicialmente invisível)
+local restoreButton = Instance.new("TextButton")
+restoreButton.Name = "RestoreButton"
+restoreButton.Text = "UwU"
+restoreButton.Size = UDim2.new(0, 80, 0, 30)
+restoreButton.AnchorPoint = Vector2.new(0.5, 0.5)
+restoreButton.Position = UDim2.new(0.5, 0, 0.05, 0)
+restoreButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+restoreButton.BackgroundTransparency = 0.2
+restoreButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+restoreButton.Font = Enum.Font.SourceSansBold
+restoreButton.TextSize = 24
+restoreButton.Visible = false
+restoreButton.Parent = screenGui
+
+local restoreCorner = Instance.new("UICorner")
+restoreCorner.CornerRadius = UDim.new(1, 0)
+restoreCorner.Parent = restoreButton
+
+-- Função para minimizar
+minimizeButton.MouseButton1Click:Connect(function()
+	frame.Visible = false
+	restoreButton.Visible = true
+end)
+
+-- Função para restaurar
+restoreButton.MouseButton1Click:Connect(function()
+	frame.Visible = true
+	restoreButton.Visible = false
+end)
+
+-- Linha roxa abaixo do título
 local thinLine = Instance.new("Frame")
 thinLine.Name = "ThinLine"
 thinLine.Size = UDim2.new(1, 0, 0, 2)
 thinLine.Position = UDim2.new(0, 0, 0, 40)
-thinLine.BackgroundColor3 = Color3.fromRGB(128, 0, 128) -- Purple
+thinLine.BackgroundColor3 = Color3.fromRGB(128, 0, 128)
 thinLine.BorderSizePixel = 0
 thinLine.Parent = frame
 
--- Sidebar (botões de abas) e aba Perfil
+-- Sidebar
 local sidebar = Instance.new("Frame")
 sidebar.Name = "Sidebar"
 sidebar.Size = UDim2.new(0, 150, 1, -52)
@@ -76,19 +126,21 @@ sidebar.Position = UDim2.new(0, 0, 0, 52)
 sidebar.BackgroundTransparency = 1
 sidebar.Parent = frame
 
+-- Aba Perfil
 local perfilButton = Instance.new("TextButton")
 perfilButton.Name = "PerfilButton"
 perfilButton.Size = UDim2.new(1, -20, 0, 40)
 perfilButton.Position = UDim2.new(0, 10, 0, 10)
 perfilButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+perfilButton.BackgroundTransparency = 1
 perfilButton.BorderSizePixel = 0
 perfilButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 perfilButton.Font = Enum.Font.SourceSans
 perfilButton.TextSize = 20
 perfilButton.Text = ""
 perfilButton.TextXAlignment = Enum.TextXAlignment.Left
+perfilButton.Parent = sidebar
 
--- Container interno para alinhar ícone e texto horizontalmente
 local contentHolder = Instance.new("Frame")
 contentHolder.Name = "ContentHolder"
 contentHolder.Size = UDim2.new(1, 0, 1, 0)
@@ -101,57 +153,9 @@ listLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 listLayout.Padding = UDim.new(0, 8)
 listLayout.Parent = contentHolder
 
-perfilButton.Parent = sidebar
-
--- Icone real (ImageLabel). Substitua o Image pelo seu asset id.
--- Icone como emoji (TextLabel) tintado de roxo
--- Icone construído com UI (círculo roxo + silhueta branca)
-local iconFrame = Instance.new("Frame")
-iconFrame.Name = "Icon"
-iconFrame.Size = UDim2.new(0, 20, 0, 20)
-iconFrame.BackgroundColor3 = Color3.fromRGB(128, 0, 128)
-iconFrame.BorderSizePixel = 0
-iconFrame.Parent = contentHolder
-
-local iconCorner = Instance.new("UICorner")
-iconCorner.CornerRadius = UDim.new(1, 0)
-iconCorner.Parent = iconFrame
-
--- cabeça (círculo branco)
-local head = Instance.new("Frame")
-head.Name = "Head"
-head.Size = UDim2.new(0, 7, 0, 7)
-head.Position = UDim2.new(0.5, -3.5, 0.3, -3.5)
-head.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-head.BorderSizePixel = 0
-head.Parent = iconFrame
-
-local headCorner = Instance.new("UICorner")
-headCorner.CornerRadius = UDim.new(1, 0)
-headCorner.Parent = head
-
--- corpo (retângulo branco arredondado)
-local body = Instance.new("Frame")
-body.Name = "Body"
-body.Size = UDim2.new(0, 10, 0, 5)
-body.Position = UDim2.new(0.5, -5, 0.65, -2.5)
-body.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-body.BorderSizePixel = 0
-body.Parent = iconFrame
-
-local bodyCorner = Instance.new("UICorner")
-bodyCorner.CornerRadius = UDim.new(0, 3)
-bodyCorner.Parent = body
-
--- ZIndex (garante que o ícone fique acima do fundo do botão)
-iconFrame.ZIndex = 3
-head.ZIndex = 4
-body.ZIndex = 4
-
--- Texto interno do botão (agora controlado por um TextLabel filho)
 local perfilText = Instance.new("TextLabel")
 perfilText.Name = "PerfilText"
-perfilText.Size = UDim2.new(1, -28, 1, 0)
+perfilText.Size = UDim2.new(1, 0, 1, 0)
 perfilText.BackgroundTransparency = 1
 perfilText.Text = "Perfil"
 perfilText.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -160,6 +164,7 @@ perfilText.TextSize = 20
 perfilText.TextXAlignment = Enum.TextXAlignment.Left
 perfilText.Parent = contentHolder
 
+-- Área de conteúdo
 local content = Instance.new("Frame")
 content.Name = "Content"
 content.Size = UDim2.new(1, -150, 1, -52)
@@ -167,7 +172,7 @@ content.Position = UDim2.new(0, 150, 0, 52)
 content.BackgroundTransparency = 1
 content.Parent = frame
 
--- Separador vertical entre sidebar e área de conteúdo
+-- Separador vertical
 local separator = Instance.new("Frame")
 separator.Name = "Separator"
 separator.Size = UDim2.new(0, 2, 1, -52)
@@ -176,20 +181,32 @@ separator.BackgroundColor3 = Color3.fromRGB(128, 0, 128)
 separator.BorderSizePixel = 0
 separator.Parent = frame
 
+-- Aba Perfil
 local perfilTab = Instance.new("Frame")
 perfilTab.Name = "PerfilTab"
 perfilTab.Size = UDim2.new(1, 0, 1, 0)
 perfilTab.BackgroundTransparency = 1
-perfilTab.Visible = false
+perfilTab.Visible = true
 perfilTab.Parent = content
-	if espTab then espTab.Visible = false end
 
--- Botão ESP abaixo do Perfil
+local perfilLabel = Instance.new("TextLabel")
+perfilLabel.Name = "PerfilLabel"
+perfilLabel.Text = "Bem-vindo ao seu Perfil"
+perfilLabel.Size = UDim2.new(1, -20, 0, 30)
+perfilLabel.Position = UDim2.new(0, 10, 0, 10)
+perfilLabel.BackgroundTransparency = 1
+perfilLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+perfilLabel.Font = Enum.Font.SourceSans
+perfilLabel.TextSize = 20
+perfilLabel.Parent = perfilTab
+
+-- Botão ESP
 local espButton = Instance.new("TextButton")
 espButton.Name = "ESPButton"
 espButton.Size = UDim2.new(1, -20, 0, 40)
 espButton.Position = UDim2.new(0, 10, 0, 60)
 espButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+espButton.BackgroundTransparency = 1
 espButton.BorderSizePixel = 0
 espButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 espButton.Font = Enum.Font.SourceSans
@@ -198,32 +215,24 @@ espButton.Text = ""
 espButton.TextXAlignment = Enum.TextXAlignment.Left
 espButton.Parent = sidebar
 
+-- Ícone e texto do botão ESP
 local espHolder = Instance.new("Frame")
 espHolder.Name = "ESPHolder"
 espHolder.Size = UDim2.new(1, 0, 1, 0)
+espHolder.Position = UDim2.new(0, 0, 0, 0)
 espHolder.BackgroundTransparency = 1
 espHolder.Parent = espButton
 
 local espLayout = Instance.new("UIListLayout")
 espLayout.FillDirection = Enum.FillDirection.Horizontal
+espLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 espLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 espLayout.Padding = UDim.new(0, 8)
 espLayout.Parent = espHolder
 
-local espIconFrame = Instance.new("Frame")
-espIconFrame.Name = "Icon"
-espIconFrame.Size = UDim2.new(0, 20, 0, 20)
-espIconFrame.BackgroundColor3 = Color3.fromRGB(128, 0, 128)
-espIconFrame.BorderSizePixel = 0
-espIconFrame.Parent = espHolder
-
-local espIconCorner = Instance.new("UICorner")
-espIconCorner.CornerRadius = UDim.new(1, 0)
-espIconCorner.Parent = espIconFrame
-
 local espText = Instance.new("TextLabel")
 espText.Name = "ESPText"
-espText.Size = UDim2.new(1, -28, 1, 0)
+espText.Size = UDim2.new(1, 0, 1, 0)
 espText.BackgroundTransparency = 1
 espText.Text = "ESP"
 espText.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -232,9 +241,7 @@ espText.TextSize = 20
 espText.TextXAlignment = Enum.TextXAlignment.Left
 espText.Parent = espHolder
 
--- (espButton click handler será definido após criar os toggles)
-
--- Aba ESP (onde ficarão os toggles)
+-- Aba ESP
 local espTab = Instance.new("Frame")
 espTab.Name = "ESPTab"
 espTab.Size = UDim2.new(1, 0, 1, 0)
@@ -253,7 +260,7 @@ espTitle.Font = Enum.Font.SourceSans
 espTitle.TextSize = 20
 espTitle.Parent = espTab
 
--- Helper to create a simple toggle row
+-- Função helper para criar toggles
 local function createToggleRow(parent, y, labelText, varName, updateFuncName)
 	local row = Instance.new("Frame")
 	row.Size = UDim2.new(1, -20, 0, 36)
@@ -278,7 +285,12 @@ local function createToggleRow(parent, y, labelText, varName, updateFuncName)
 	toggle.Position = UDim2.new(1, -60, 0.5, -12)
 	toggle.BackgroundColor3 = Color3.fromRGB(60,60,60)
 	toggle.BorderSizePixel = 0
+	toggle.Text = ""
 	toggle.Parent = row
+
+	local toggleCorner = Instance.new("UICorner")
+	toggleCorner.CornerRadius = UDim.new(0, 12)
+	toggleCorner.Parent = toggle
 
 	local knob = Instance.new("Frame")
 	knob.Name = "Knob"
@@ -288,19 +300,21 @@ local function createToggleRow(parent, y, labelText, varName, updateFuncName)
 	knob.BorderSizePixel = 0
 	knob.Parent = toggle
 
+	local knobCorner = Instance.new("UICorner")
+	knobCorner.CornerRadius = UDim.new(1, 0)
+	knobCorner.Parent = knob
+
 	local function updateVisual(state)
+		local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		if state then
-			toggle.BackgroundColor3 = Color3.fromRGB(0, 170, 85)
-			knob.Position = UDim2.new(1, -22, 0.5, -10)
-			knob.BackgroundColor3 = Color3.fromRGB(255,255,255)
+			TweenService:Create(toggle, tweenInfo, {BackgroundColor3 = Color3.fromRGB(128, 0, 128)}):Play()
+			TweenService:Create(knob, tweenInfo, {Position = UDim2.new(1, -22, 0.5, -10), BackgroundColor3 = Color3.fromRGB(255,255,255)}):Play()
 		else
-			toggle.BackgroundColor3 = Color3.fromRGB(60,60,60)
-			knob.Position = UDim2.new(0, 2, 0.5, -10)
-			knob.BackgroundColor3 = Color3.fromRGB(200,200,200)
+			TweenService:Create(toggle, tweenInfo, {BackgroundColor3 = Color3.fromRGB(60,60,60)}):Play()
+			TweenService:Create(knob, tweenInfo, {Position = UDim2.new(0, 2, 0.5, -10), BackgroundColor3 = Color3.fromRGB(200,200,200)}):Play()
 		end
 	end
 
-	-- initialize from existing globals if present
 	local initState = false
 	if _G[varName] ~= nil then initState = _G[varName] end
 	updateVisual(initState)
@@ -309,7 +323,6 @@ local function createToggleRow(parent, y, labelText, varName, updateFuncName)
 		initState = not initState
 		_G[varName] = initState
 		updateVisual(initState)
-		-- call update function if exists
 		if updateFuncName and type(_G[updateFuncName]) == "function" then
 			pcall(_G[updateFuncName])
 		end
@@ -320,134 +333,152 @@ end
 _G.UpdateMasterESP = function()
 	if _G.MasterESP then
 		-- Enable ESP
-		local existingGui = game.Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("ESP_GUI")
+		local function criarESP(player)
+			local function aplicar(character)
+				if character:FindFirstChild("ESPHighlight") then return end
+
+				local highlight = Instance.new("Highlight")
+				highlight.Name = "ESPHighlight"
+				highlight.FillColor = Color3.fromRGB(255, 0, 0)
+				highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+				highlight.FillTransparency = 0.5
+				highlight.OutlineTransparency = 0
+				highlight.Adornee = character
+				highlight.Parent = character
+			end
+
+			-- Aplica caso o character já exista
+			if player.Character then
+				aplicar(player.Character)
+			end
+
+			-- Aplica quando o character aparecer (respawn)
+			player.CharacterAdded:Connect(aplicar)
+		end
+
+		-- Aplica ESP para todos os players existentes
+		for _, player in pairs(Players:GetPlayers()) do
+			criarESP(player)
+		end
+
+		-- Aplica ESP para players que entrarem depois
+		Players.PlayerAdded:Connect(criarESP)
+	else
+		-- Disable ESP
+		for _, player in pairs(Players:GetPlayers()) do
+			if player.Character and player.Character:FindFirstChild("ESPHighlight") then
+				player.Character.ESPHighlight:Destroy()
+			end
+		end
+	end
+end
+
+-- Function to update ESP Name
+_G.UpdateESPName = function()
+	if _G.ESPName then
+		-- Enable ESP Name
+		local existingGui = game.Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("ESP_Name_GUI")
 		if existingGui then existingGui:Destroy() end
 
-		-- Serviços
-		local Players = game:GetService("Players")
-		local RunService = game:GetService("RunService")
-		local localPlayer = Players.LocalPlayer
-		local camera = workspace.CurrentCamera
-
-		-- Criar ScreenGui caso não exista
 		local screenGui = Instance.new("ScreenGui")
-		screenGui.Name = "ESP_GUI"
+		screenGui.Name = "ESP_Name_GUI"
 		screenGui.Parent = localPlayer:WaitForChild("PlayerGui")
 
-		-- Função que cria ESP pra cada player
-		local function createESP(player)
-			-- Criar Frame da box
-			local box = Instance.new("Frame")
-			box.Name = "ESP_Box_" .. player.Name
-			box.Size = UDim2.new(0, 50, 0, 100)  -- tamanho inicial
-			box.BorderSizePixel = 2
-			box.BackgroundTransparency = 0.7
-			box.BorderColor3 = Color3.fromRGB(255,0,0)
-			box.Parent = screenGui
+		local camera = workspace.CurrentCamera
 
-			-- Criar nome acima da box
+		local function createESPName(player)
 			local nameLabel = Instance.new("TextLabel")
 			nameLabel.Name = "ESP_Name_" .. player.Name
-			nameLabel.Size = UDim2.new(1,0,0,20)
-			nameLabel.Position = UDim2.new(0,0,-20,0)
+			nameLabel.Size = UDim2.new(0, 200, 0, 20)
 			nameLabel.BackgroundTransparency = 1
-			nameLabel.TextColor3 = Color3.fromRGB(255,255,255)
+			nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 			nameLabel.TextStrokeTransparency = 0
 			nameLabel.TextScaled = true
 			nameLabel.Text = player.Name
-			nameLabel.Parent = box
+			nameLabel.Parent = screenGui
 
-			-- Atualizar posição todo frame
+			local healthBar = Instance.new("Frame")
+			healthBar.Name = "ESP_Health_" .. player.Name
+			healthBar.Size = UDim2.new(0, 100, 0, 10)
+			healthBar.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+			healthBar.BorderSizePixel = 1
+			healthBar.BorderColor3 = Color3.fromRGB(255, 255, 255)
+			healthBar.Parent = screenGui
+
+			local healthFill = Instance.new("Frame")
+			healthFill.Name = "Fill"
+			healthFill.Size = UDim2.new(1, 0, 1, 0)
+			healthFill.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+			healthFill.BorderSizePixel = 0
+			healthFill.Parent = healthBar
+
 			RunService.RenderStepped:Connect(function()
-				if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-					local character = player.Character
-					local humanoidRootPart = character.HumanoidRootPart
+				if player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("Humanoid") then
+					local head = player.Character.Head
+					local humanoid = player.Character.Humanoid
+					local headPos = head.Position + Vector3.new(0, head.Size.Y/2 + 1, 0)
+					local headScreen = camera:WorldToViewportPoint(headPos)
 
-					-- Calcular bounding box do personagem
-					local minY = math.huge
-					local maxY = -math.huge
-					local minX = math.huge
-					local maxX = -math.huge
-
-					for _, part in pairs(character:GetChildren()) do
-						if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-							local corners = {
-								part.CFrame * CFrame.new(-part.Size.X/2, -part.Size.Y/2, -part.Size.Z/2),
-								part.CFrame * CFrame.new(part.Size.X/2, -part.Size.Y/2, -part.Size.Z/2),
-								part.CFrame * CFrame.new(-part.Size.X/2, part.Size.Y/2, -part.Size.Z/2),
-								part.CFrame * CFrame.new(part.Size.X/2, part.Size.Y/2, -part.Size.Z/2),
-								part.CFrame * CFrame.new(-part.Size.X/2, -part.Size.Y/2, part.Size.Z/2),
-								part.CFrame * CFrame.new(part.Size.X/2, -part.Size.Y/2, part.Size.Z/2),
-								part.CFrame * CFrame.new(-part.Size.X/2, part.Size.Y/2, part.Size.Z/2),
-								part.CFrame * CFrame.new(part.Size.X/2, part.Size.Y/2, part.Size.Z/2)
-							}
-
-							for _, corner in pairs(corners) do
-								local screenPos = camera:WorldToViewportPoint(corner.Position)
-								minX = math.min(minX, screenPos.X)
-								maxX = math.max(maxX, screenPos.X)
-								minY = math.min(minY, screenPos.Y)
-								maxY = math.max(maxY, screenPos.Y)
-							end
-						end
+					if headScreen.Z > 0 then
+						nameLabel.Position = UDim2.new(0, headScreen.X - 100, 0, headScreen.Y - 30)
+						nameLabel.Visible = true
+					else
+						nameLabel.Visible = false
 					end
 
-					if minX < math.huge then
-						local width = maxX - minX
-						local height = maxY - minY
-
-						box.Size = UDim2.new(0, width, 0, height)
-						box.Position = UDim2.new(0, minX, 0, minY)
-						box.Visible = true
+					local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+					if rootPart then
+						local rootScreen = camera:WorldToViewportPoint(rootPart.Position + Vector3.new(2, 0, 0))
+						if rootScreen.Z > 0 then
+							local healthPercent = humanoid.Health / humanoid.MaxHealth
+							healthFill.Size = UDim2.new(healthPercent, 0, 1, 0)
+							healthBar.Position = UDim2.new(0, rootScreen.X, 0, rootScreen.Y - 5)
+							healthBar.Visible = true
+						else
+							healthBar.Visible = false
+						end
 					else
-						box.Visible = false
+						healthBar.Visible = false
 					end
 				else
-					box.Visible = false
+					nameLabel.Visible = false
+					healthBar.Visible = false
 				end
 			end)
 		end
 
-		-- Criar ESP para todos os players existentes
 		for _, player in pairs(Players:GetPlayers()) do
-			createESP(player)
+			if player ~= localPlayer then
+				createESPName(player)
+			end
 		end
 
-		-- Criar ESP para players que entrarem depois
 		Players.PlayerAdded:Connect(function(player)
-			player.CharacterAdded:Connect(function()
-				createESP(player)
-			end)
+			if player ~= localPlayer then
+				createESPName(player)
+			end
 		end)
 	else
-		-- Disable ESP
-		local existingGui = game.Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("ESP_GUI")
+		-- Disable ESP Name
+		local existingGui = game.Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("ESP_Name_GUI")
 		if existingGui then existingGui:Destroy() end
 	end
 end
 
--- Master ESP Toggle
+-- Toggle Master ESP
 createToggleRow(espTab, 50, "Master ESP", "MasterESP", "UpdateMasterESP")
 
--- agora conecta o clique do botão ESP (depois de a aba existir)
+-- Toggle ESP Name
+createToggleRow(espTab, 90, "Name ESP", "ESPName", "UpdateESPName")
+
+-- Botão ESP abre aba ESP
 espButton.MouseButton1Click:Connect(function()
 	espTab.Visible = true
 	perfilTab.Visible = false
 end)
 
-local perfilLabel = Instance.new("TextLabel")
-perfilLabel.Name = "PerfilLabel"
-perfilLabel.Text = "Bem-vindo ao seu Perfil"
-perfilLabel.Size = UDim2.new(1, -20, 0, 30)
-perfilLabel.Position = UDim2.new(0, 10, 0, 10)
-perfilLabel.BackgroundTransparency = 1
-perfilLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-perfilLabel.Font = Enum.Font.SourceSans
-perfilLabel.TextSize = 20
-perfilLabel.Parent = perfilTab
-
+-- Botão Perfil abre aba Perfil
 perfilButton.MouseButton1Click:Connect(function()
-		-- mostra só a aba Perfil, esconde a aba ESP
-		if espTab then espTab.Visible = false end
-		perfilTab.Visible = true
+	espTab.Visible = false
+	perfilTab.Visible = true
 end)
