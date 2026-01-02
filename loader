@@ -579,8 +579,6 @@ _G.UpdateAIMBot = function()
 					local headPos = closestPlayer.Character.Head.Position
 					local direction = (headPos - myRoot.Position).Unit
 					myRoot.CFrame = CFrame.new(myRoot.Position, myRoot.Position + direction)
-					local newCFrame = CFrame.new(camera.CFrame.Position, headPos)
-					camera.CFrame = newCFrame
 				end
 			end)
 		end
