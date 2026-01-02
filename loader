@@ -518,7 +518,7 @@ aimTab.Name = "AIMTab"
 aimTab.Size = UDim2.new(1, 0, 1, 0)
 aimTab.BackgroundTransparency = 1
 aimTab.Visible = false
-aimTab.CanvasSize = UDim2.new(0, 0, 0, 400)
+aimTab.CanvasSize = UDim2.new(0, 0, 0, 500)
 aimTab.ScrollBarThickness = 6
 aimTab.Parent = content
 
@@ -547,6 +547,50 @@ searchPlayerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 searchPlayerButton.Font = Enum.Font.SourceSans
 searchPlayerButton.TextSize = 18
 searchPlayerButton.Parent = aimTab
+
+-- Texto entre os botões
+local selectText = Instance.new("TextLabel")
+selectText.Name = "SelectText"
+selectText.Text = "Clique aqui para selecionar um player."
+selectText.Size = UDim2.new(1, -20, 0, 20)
+selectText.Position = UDim2.new(0, 10, 0, 80)
+selectText.BackgroundTransparency = 1
+selectText.TextColor3 = Color3.fromRGB(128, 0, 128)
+selectText.Font = Enum.Font.SourceSans
+selectText.TextSize = 12
+selectText.TextXAlignment = Enum.TextXAlignment.Center
+selectText.Parent = aimTab
+
+-- Botão Teletransportar
+local teleportButton = Instance.new("TextButton")
+teleportButton.Name = "TeleportButton"
+teleportButton.Text = "teletransportar"
+teleportButton.Size = UDim2.new(1, -20, 0, 30)
+teleportButton.Position = UDim2.new(0, 10, 0, 100)
+teleportButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+teleportButton.BackgroundTransparency = 0
+teleportButton.BorderSizePixel = 1
+teleportButton.BorderColor3 = Color3.fromRGB(128, 0, 128)
+teleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+teleportButton.Font = Enum.Font.SourceSans
+teleportButton.TextSize = 18
+teleportButton.Parent = aimTab
+
+local teleportCorner = Instance.new("UICorner", teleportButton)
+teleportCorner.CornerRadius = UDim.new(0, 8)
+
+-- Texto abaixo do teletransportar
+local tpText = Instance.new("TextLabel")
+tpText.Name = "TPText"
+tpText.Text = "Clique aqui pra dar TP no player selecionado"
+tpText.Size = UDim2.new(1, -20, 0, 20)
+tpText.Position = UDim2.new(0, 10, 0, 135)
+tpText.BackgroundTransparency = 1
+tpText.TextColor3 = Color3.fromRGB(128, 0, 128)
+tpText.Font = Enum.Font.SourceSans
+tpText.TextSize = 14
+tpText.TextXAlignment = Enum.TextXAlignment.Center
+tpText.Parent = aimTab
 
 -- Toggle AIM Bot
 createToggleRow(aimTab, 190, "HS Pescoço do uriel", "AIMBot", "UpdateAIMBot")
@@ -658,7 +702,7 @@ local selectedPlayer = nil
 -- Janela
 local playerListFrame = Instance.new("Frame")
 playerListFrame.Size = UDim2.new(0, 260, 0, 360)
-playerListFrame.Position = UDim2.new(0, 10, 0, 85)
+playerListFrame.Position = UDim2.new(0, 45, 0, 85)
 playerListFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 playerListFrame.BorderSizePixel = 0
 playerListFrame.Visible = false
@@ -693,21 +737,6 @@ layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 	listFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 5)
 end)
 
--- Botão Teletransportar
-local teleportButton = Instance.new("TextButton")
-teleportButton.Name = "TeleportButton"
-teleportButton.Text = "teletransportar"
-teleportButton.Size = UDim2.new(1, -20, 0, 30)
-teleportButton.Position = UDim2.new(0, 10, 0, 315)
-teleportButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-teleportButton.TextColor3 = Color3.new(1,1,1)
-teleportButton.Font = Enum.Font.SourceSans
-teleportButton.TextSize = 18
-teleportButton.Parent = playerListFrame
-
-local teleportCorner = Instance.new("UICorner", teleportButton)
-teleportCorner.CornerRadius = UDim.new(0, 8)
-
 -- Função de teleport
 local function teleportToPlayer(target)
 	if target == localPlayer then return end
@@ -737,14 +766,13 @@ local function createButton(player)
 	if player == localPlayer then
 		btn.Text = player.Name .. " (Você)"
 		btn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-	else
-		btn.Text = player.Name
-		btn.MouseButton1Click:Connect(function()
-			selectedPlayer = player
-			searchPlayerButton.Text = player.Name
-			playerListFrame.Visible = false
-		end)
 	end
+
+	btn.MouseButton1Click:Connect(function()
+		selectedPlayer = player
+		searchPlayerButton.Text = player.Name
+		playerListFrame.Visible = false
+	end)
 end
 
 -- Atualizar lista
@@ -771,11 +799,5 @@ searchPlayerButton.MouseButton1Click:Connect(function()
 	playerListFrame.Visible = not playerListFrame.Visible
 	if playerListFrame.Visible then
 		refreshPlayers()
-	end
-end)
-
-teleportButton.MouseButton1Click:Connect(function()
-	if selectedPlayer then
-		teleportToPlayer(selectedPlayer)
 	end
 end)
