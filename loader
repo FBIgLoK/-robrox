@@ -653,25 +653,42 @@ aimButton.MouseButton1Click:Connect(function()
 	aimTab.Visible = true
 end)
 
-local playerList = Instance.new("ScrollingFrame")
-playerList.Name = "PlayerList"
-playerList.Size = UDim2.new(1, -20, 0, 200)
-playerList.Position = UDim2.new(0, 10, 0, 85)
-playerList.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-playerList.BackgroundTransparency = 0
-playerList.BorderSizePixel = 0
-playerList.Visible = false
-playerList.ZIndex = 10
-playerList.CanvasSize = UDim2.new(0, 0, 0, 0)
-playerList.ScrollBarThickness = 6
-playerList.ScrollBarImageTransparency = 0.3
-playerList.Parent = aimTab
+-- Janela
+local playerListFrame = Instance.new("Frame")
+playerListFrame.Size = UDim2.new(0, 260, 0, 320)
+playerListFrame.Position = UDim2.new(0, 10, 0, 85)
+playerListFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+playerListFrame.BorderSizePixel = 0
+playerListFrame.Visible = false
+playerListFrame.Parent = aimTab
 
-local layout = Instance.new("UIListLayout", playerList)
+local corner = Instance.new("UICorner", playerListFrame)
+corner.CornerRadius = UDim.new(0, 12)
+
+-- Título
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 40)
+title.BackgroundTransparency = 1
+title.Text = "Players da Partida"
+title.TextColor3 = Color3.new(1,1,1)
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 20
+title.Parent = playerListFrame
+
+-- Área da lista
+local listFrame = Instance.new("ScrollingFrame")
+listFrame.Size = UDim2.new(1, -10, 1, -50)
+listFrame.Position = UDim2.new(0, 5, 0, 45)
+listFrame.CanvasSize = UDim2.new(0,0,0,0)
+listFrame.ScrollBarImageTransparency = 0.3
+listFrame.BackgroundTransparency = 1
+listFrame.Parent = playerListFrame
+
+local layout = Instance.new("UIListLayout", listFrame)
 layout.Padding = UDim.new(0, 6)
 
 layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-	playerList.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 5)
+	listFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 5)
 end)
 
 -- Função de teleport
@@ -695,7 +712,7 @@ local function createButton(player)
 	btn.TextColor3 = Color3.new(1,1,1)
 	btn.Font = Enum.Font.SourceSans
 	btn.TextSize = 18
-	btn.Parent = playerList
+	btn.Parent = listFrame
 
 	local c = Instance.new("UICorner", btn)
 	c.CornerRadius = UDim.new(0, 8)
@@ -707,7 +724,7 @@ local function createButton(player)
 		btn.Text = player.Name
 		btn.MouseButton1Click:Connect(function()
 			searchPlayerButton.Text = player.Name
-			playerList.Visible = false
+			playerListFrame.Visible = false
 			teleportToPlayer(player)
 		end)
 	end
@@ -715,7 +732,7 @@ end
 
 -- Atualizar lista
 local function refreshPlayers()
-	for _, v in pairs(playerList:GetChildren()) do
+	for _, v in pairs(listFrame:GetChildren()) do
 		if v:IsA("TextButton") then
 			v:Destroy()
 		end
@@ -734,10 +751,8 @@ Players.PlayerAdded:Connect(refreshPlayers)
 Players.PlayerRemoving:Connect(refreshPlayers)
 
 searchPlayerButton.MouseButton1Click:Connect(function()
-	if playerList.Visible then
-		playerList.Visible = false
-	else
+	playerListFrame.Visible = not playerListFrame.Visible
+	if playerListFrame.Visible then
 		refreshPlayers()
-		playerList.Visible = true
 	end
 end)
