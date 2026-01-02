@@ -275,7 +275,7 @@ local aimText = Instance.new("TextLabel")
 aimText.Name = "AIMText"
 aimText.Size = UDim2.new(1, 0, 1, 0)
 aimText.BackgroundTransparency = 1
-aimText.Text = "AIM"
+aimText.Text = "Troll"
 aimText.TextColor3 = Color3.fromRGB(255, 255, 255)
 aimText.Font = Enum.Font.SourceSans
 aimText.TextSize = 20
@@ -513,16 +513,18 @@ createToggleRow(espTab, 50, "Master ESP", "MasterESP", "UpdateMasterESP")
 createToggleRow(espTab, 90, "Name ESP", "ESPName", "UpdateESPName")
 
 -- Aba AIM
-local aimTab = Instance.new("Frame")
+local aimTab = Instance.new("ScrollingFrame")
 aimTab.Name = "AIMTab"
 aimTab.Size = UDim2.new(1, 0, 1, 0)
 aimTab.BackgroundTransparency = 1
 aimTab.Visible = false
+aimTab.CanvasSize = UDim2.new(0, 0, 0, 400)
+aimTab.ScrollBarThickness = 6
 aimTab.Parent = content
 
 local aimTitle = Instance.new("TextLabel")
 aimTitle.Name = "AIMTitle"
-aimTitle.Text = "AIM Settings"
+aimTitle.Text = "Fuder Geral KKKKKKJ"
 aimTitle.Size = UDim2.new(1, -20, 0, 30)
 aimTitle.Position = UDim2.new(0, 10, 0, 10)
 aimTitle.BackgroundTransparency = 1
@@ -531,8 +533,100 @@ aimTitle.Font = Enum.Font.SourceSans
 aimTitle.TextSize = 20
 aimTitle.Parent = aimTab
 
+-- Player search dropdown
+local searchPlayerButton = Instance.new("TextButton")
+searchPlayerButton.Name = "SearchPlayerButton"
+searchPlayerButton.Text = "procurar player ▼"
+searchPlayerButton.Size = UDim2.new(1, -20, 0, 30)
+searchPlayerButton.Position = UDim2.new(0, 10, 0, 50)
+searchPlayerButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+searchPlayerButton.BackgroundTransparency = 0
+searchPlayerButton.BorderSizePixel = 1
+searchPlayerButton.BorderColor3 = Color3.fromRGB(128, 0, 128)
+searchPlayerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+searchPlayerButton.Font = Enum.Font.SourceSans
+searchPlayerButton.TextSize = 18
+searchPlayerButton.Parent = aimTab
+
+-- TP Button
+local tpButton = Instance.new("TextButton")
+tpButton.Name = "TPButton"
+tpButton.Text = "/tp"
+tpButton.Size = UDim2.new(1, -20, 0, 30)
+tpButton.Position = UDim2.new(0, 10, 0, 80)
+tpButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+tpButton.BackgroundTransparency = 0
+tpButton.BorderSizePixel = 1
+tpButton.BorderColor3 = Color3.fromRGB(128, 0, 128)
+tpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+tpButton.Font = Enum.Font.SourceSans
+tpButton.TextSize = 18
+tpButton.Parent = aimTab
+
+local playerList = Instance.new("ScrollingFrame")
+playerList.Name = "PlayerList"
+playerList.Size = UDim2.new(1, -20, 0, 100)
+playerList.Position = UDim2.new(0, 10, 0, 80)
+playerList.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+playerList.BackgroundTransparency = 0
+playerList.BorderSizePixel = 0
+playerList.Visible = false
+playerList.ZIndex = 10
+playerList.Parent = aimTab
+
+tpButton.MouseButton1Click:Connect(function()
+	if _G.SelectedPlayer and _G.SelectedPlayer.Character and _G.SelectedPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		localPlayer.Character.HumanoidRootPart.CFrame = _G.SelectedPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.FillDirection = Enum.FillDirection.Vertical
+listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+listLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+listLayout.Padding = UDim.new(0, 5)
+listLayout.Parent = playerList
+
+local function populatePlayerList()
+	for _, child in pairs(playerList:GetChildren()) do
+		if child:IsA("TextButton") then
+			child:Destroy()
+		end
+	end
+	for _, player in pairs(Players:GetPlayers()) do
+		if player ~= localPlayer then
+			local btn = Instance.new("TextButton")
+			btn.Name = "PlayerButton_" .. player.Name
+			btn.Text = player.Name
+			btn.Size = UDim2.new(1, 0, 0, 30)
+			btn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+			btn.BackgroundTransparency = 0
+			btn.BorderSizePixel = 1
+			btn.BorderColor3 = Color3.fromRGB(128, 0, 128)
+			btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+			btn.Font = Enum.Font.SourceSans
+			btn.TextSize = 16
+			btn.Parent = playerList
+			btn.MouseButton1Click:Connect(function()
+				_G.SelectedPlayer = player
+				searchPlayerButton.Text = "procurar player: " .. player.Name .. " ▼"
+				playerList.Visible = false
+			end)
+		end
+	end
+end
+
+searchPlayerButton.MouseButton1Click:Connect(function()
+	if playerList.Visible then
+		playerList.Visible = false
+	else
+		populatePlayerList()
+		playerList.Visible = true
+	end
+end)
+
 -- Toggle AIM Bot
-createToggleRow(aimTab, 50, "HS Pescoço do uriel", "AIMBot", "UpdateAIMBot")
+createToggleRow(aimTab, 190, "HS Pescoço do uriel", "AIMBot", "UpdateAIMBot")
 
 -- Function to update AIM Bot
 _G.UpdateAIMBot = function()
@@ -558,7 +652,11 @@ _G.UpdateAIMBot = function()
 			crosshair.Parent = crosshairGui
 		end
 
-		local function getClosestPlayer()
+		local function getTargetPlayer()
+			if _G.SelectedPlayer and _G.SelectedPlayer.Character and _G.SelectedPlayer.Character:FindFirstChild("Head") and _G.SelectedPlayer.Character:FindFirstChild("Humanoid") and _G.SelectedPlayer.Character.Humanoid.Health > 0 then
+				return _G.SelectedPlayer
+			end
+
 			local closest
 			local minDist = math.huge
 
@@ -598,27 +696,43 @@ _G.UpdateAIMBot = function()
 				local myRoot = myChar:FindFirstChild("HumanoidRootPart")
 				if not myRoot then return end
 
-				local target = getClosestPlayer()
-				if not target or not target.Character then return end
+				if _G.SelectedPlayer and _G.SelectedPlayer.Character and _G.SelectedPlayer.Character:FindFirstChild("Head") and _G.SelectedPlayer.Character:FindFirstChild("Humanoid") and _G.SelectedPlayer.Character.Humanoid.Health > 0 then
+					-- Teleport to selected player
+					local targetHead = _G.SelectedPlayer.Character.Head
+					local offset = Vector3.new(0, 0, -2)
+					myRoot.CFrame = CFrame.new(
+						targetHead.Position + offset,
+						targetHead.Position
+					)
+					local camera = workspace.CurrentCamera
+					camera.CFrame = CFrame.new(
+						camera.CFrame.Position,
+						targetHead.Position
+					)
+				else
+					-- Teleport to all players
+					local targets = {}
+					for _, player in pairs(Players:GetPlayers()) do
+						if player ~= localPlayer and player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+							table.insert(targets, player)
+						end
+					end
 
-				local targetHead = target.Character:FindFirstChild("Head")
-				if not targetHead then return end
-
-				-- posição ligeiramente atrás da cabeça do alvo
-				local offset = Vector3.new(0, 0, -2)
-
-				-- teleporta seu player olhando para o alvo
-				myRoot.CFrame = CFrame.new(
-					targetHead.Position + offset,
-					targetHead.Position
-				)
-
-				-- força a câmera a olhar para a cabeça
-				local camera = workspace.CurrentCamera
-				camera.CFrame = CFrame.new(
-					camera.CFrame.Position,
-					targetHead.Position
-				)
+					if #targets > 0 then
+						local target = targets[math.random(1, #targets)]
+						local targetHead = target.Character.Head
+						local offset = Vector3.new(0, 0, -2)
+						myRoot.CFrame = CFrame.new(
+							targetHead.Position + offset,
+							targetHead.Position
+						)
+						local camera = workspace.CurrentCamera
+						camera.CFrame = CFrame.new(
+							camera.CFrame.Position,
+							targetHead.Position
+						)
+					end
+				end
 			end)
 		end
 	else
