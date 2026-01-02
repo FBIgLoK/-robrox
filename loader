@@ -1,5 +1,6 @@
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+local UserInputService = game:GetService("UserInputService")
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "MenuGui"
@@ -19,6 +20,33 @@ frame.Parent = screenGui
 local uiCorner = Instance.new("UICorner")
 uiCorner.CornerRadius = UDim.new(0, 10)
 uiCorner.Parent = frame
+
+-- Drag functionality
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+frame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = frame.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+frame.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		if dragging then
+			local delta = input.Position - dragStart
+			frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		end
+	end
+end)
 
 local title = Instance.new("TextLabel")
 title.Name = "Title"
@@ -288,11 +316,92 @@ local function createToggleRow(parent, y, labelText, varName, updateFuncName)
 	end)
 end
 
--- Create toggles (match names used in `sexo`)
-createToggleRow(espTab, 50, "ESP Players", "ESPPlayer", "UpdatePlayerChams")
-createToggleRow(espTab, 100, "ESP Fruits", "DevilFruitESP", "UpdateDevilChams")
-createToggleRow(espTab, 150, "ESP Island", "IslandESP", "UpdateIslandESP")
-createToggleRow(espTab, 200, "ESP Flower", "FlowerESP", "UpdateFlowerChams")
+-- Function to update Master ESP
+_G.UpdateMasterESP = function()
+	if _G.MasterESP then
+		-- Enable ESP
+		local existingGui = game.Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("ESP_GUI")
+		if existingGui then existingGui:Destroy() end
+
+		-- Serviços
+		local Players = game:GetService("Players")
+		local RunService = game:GetService("RunService")
+		local localPlayer = Players.LocalPlayer
+		local camera = workspace.CurrentCamera
+
+		-- Criar ScreenGui caso não exista
+		local screenGui = Instance.new("ScreenGui")
+		screenGui.Name = "ESP_GUI"
+		screenGui.Parent = localPlayer:WaitForChild("PlayerGui")
+
+		-- Função que cria ESP pra cada player
+		local function createESP(player)
+			-- Criar Frame da box
+			local box = Instance.new("Frame")
+			box.Name = "ESP_Box_" .. player.Name
+			box.Size = UDim2.new(0, 50, 0, 100)  -- tamanho inicial
+			box.BorderSizePixel = 2
+			box.BackgroundTransparency = 0.7
+			box.BorderColor3 = Color3.fromRGB(255,0,0)
+			box.Parent = screenGui
+
+			-- Criar nome acima da box
+			local nameLabel = Instance.new("TextLabel")
+			nameLabel.Name = "ESP_Name_" .. player.Name
+			nameLabel.Size = UDim2.new(1,0,0,20)
+			nameLabel.Position = UDim2.new(0,0,-20,0)
+			nameLabel.BackgroundTransparency = 1
+			nameLabel.TextColor3 = Color3.fromRGB(255,255,255)
+			nameLabel.TextStrokeTransparency = 0
+			nameLabel.TextScaled = true
+			nameLabel.Text = player.Name
+			nameLabel.Parent = box
+
+			-- Atualizar posição todo frame
+			RunService.RenderStepped:Connect(function()
+				if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+					local root = player.Character.HumanoidRootPart
+					local pos, onScreen = camera:WorldToViewportPoint(root.Position)
+
+					-- Mostrar mesmo atrás da parede
+					box.Visible = true
+
+					-- Ajustar posição da box
+					local size = Vector3.new(2, 5, 1)  -- tamanho aproximado do player
+					local topPos = camera:WorldToViewportPoint(root.Position + Vector3.new(0, size.Y/2, 0))
+					local bottomPos = camera:WorldToViewportPoint(root.Position - Vector3.new(0, size.Y/2, 0))
+
+					local height = (topPos.Y - bottomPos.Y)
+					local width = height/2  -- box proporcional
+
+					box.Size = UDim2.new(0, width, 0, height)
+					box.Position = UDim2.new(0, topPos.X - width/2, 0, topPos.Y)
+				else
+					box.Visible = false
+				end
+			end)
+		end
+
+		-- Criar ESP para todos os players existentes
+		for _, player in pairs(Players:GetPlayers()) do
+			createESP(player)
+		end
+
+		-- Criar ESP para players que entrarem depois
+		Players.PlayerAdded:Connect(function(player)
+			player.CharacterAdded:Connect(function()
+				createESP(player)
+			end)
+		end)
+	else
+		-- Disable ESP
+		local existingGui = game.Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("ESP_GUI")
+		if existingGui then existingGui:Destroy() end
+	end
+end
+
+-- Master ESP Toggle
+createToggleRow(espTab, 50, "Master ESP", "MasterESP", "UpdateMasterESP")
 
 -- agora conecta o clique do botão ESP (depois de a aba existir)
 espButton.MouseButton1Click:Connect(function()
