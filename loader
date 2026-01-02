@@ -766,6 +766,8 @@ local function createButton(player)
 	if player == localPlayer then
 		btn.Text = player.Name .. " (Você)"
 		btn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+	else
+		btn.Text = player.Name
 	end
 
 	btn.MouseButton1Click:Connect(function()
