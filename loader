@@ -696,9 +696,23 @@ _G.UpdateAIMBot = function()
 				local myRoot = myChar:FindFirstChild("HumanoidRootPart")
 				if not myRoot then return end
 
-				if _G.SelectedPlayer and _G.SelectedPlayer.Character and _G.SelectedPlayer.Character:FindFirstChild("Head") and _G.SelectedPlayer.Character:FindFirstChild("Humanoid") and _G.SelectedPlayer.Character.Humanoid.Health > 0 then
-					-- Teleport to selected player
-					local targetHead = _G.SelectedPlayer.Character.Head
+				local closest
+				local minDist = math.huge
+				local myPos = myRoot.Position
+
+				for _, player in pairs(Players:GetPlayers()) do
+					if player ~= localPlayer and player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+						local head = player.Character.Head
+						local dist = (head.Position - myPos).Magnitude
+						if dist < minDist then
+							minDist = dist
+							closest = player
+						end
+					end
+				end
+
+				if closest then
+					local targetHead = closest.Character.Head
 					local offset = Vector3.new(0, 0, -2)
 					myRoot.CFrame = CFrame.new(
 						targetHead.Position + offset,
@@ -709,29 +723,6 @@ _G.UpdateAIMBot = function()
 						camera.CFrame.Position,
 						targetHead.Position
 					)
-				else
-					-- Teleport to all players
-					local targets = {}
-					for _, player in pairs(Players:GetPlayers()) do
-						if player ~= localPlayer and player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
-							table.insert(targets, player)
-						end
-					end
-
-					if #targets > 0 then
-						local target = targets[math.random(1, #targets)]
-						local targetHead = target.Character.Head
-						local offset = Vector3.new(0, 0, -2)
-						myRoot.CFrame = CFrame.new(
-							targetHead.Position + offset,
-							targetHead.Position
-						)
-						local camera = workspace.CurrentCamera
-						camera.CFrame = CFrame.new(
-							camera.CFrame.Position,
-							targetHead.Position
-						)
-					end
 				end
 			end)
 		end
