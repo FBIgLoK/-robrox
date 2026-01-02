@@ -532,7 +532,7 @@ aimTitle.TextSize = 20
 aimTitle.Parent = aimTab
 
 -- Toggle AIM Bot
-createToggleRow(aimTab, 50, "AIM Bot", "AIMBot", "UpdateAIMBot")
+createToggleRow(aimTab, 50, "HS Pescoço do uriel", "AIMBot", "UpdateAIMBot")
 
 -- Function to update AIM Bot
 _G.UpdateAIMBot = function()
