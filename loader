@@ -580,13 +580,13 @@ local teleportCorner = Instance.new("UICorner", teleportButton)
 teleportCorner.CornerRadius = UDim.new(0, 8)
 
 teleportButton.MouseButton1Click:Connect(function()
-	print("Teleport button clicked")
-	if selectedPlayer then
-		print("Selected player: " .. selectedPlayer.Name)
-		teleportToPlayer(selectedPlayer)
-	else
-		print("No player selected")
-	end
+    print("Teleport button clicked")
+    if selectedPlayer then
+        print("Selected player: " .. selectedPlayer.Name)
+        teleportToPlayer(selectedPlayer)
+    else
+        print("No player selected")
+    end
 end)
 
 -- Texto abaixo do teletransportar
@@ -624,10 +624,10 @@ _G.UpdateAIMBot = function()
 
 			for _, player in pairs(Players:GetPlayers()) do
 				if player ~= localPlayer
-					and player.Character
-					and player.Character:FindFirstChild("Head")
-					and player.Character:FindFirstChild("Humanoid")
-					and player.Character.Humanoid.Health > 0 then
+				and player.Character
+				and player.Character:FindFirstChild("Head")
+				and player.Character:FindFirstChild("Humanoid")
+				and player.Character.Humanoid.Health > 0 then
 
 					local head = player.Character.Head
 					local dist = (head.Position - myPos).Magnitude
@@ -750,23 +750,14 @@ end)
 
 -- Função de teleport
 local function teleportToPlayer(target)
-	print("Teleporting to player: " .. target.Name)
-	if target == localPlayer then print("Cannot teleport to yourself") return end
-	if not target.Character or not localPlayer.Character then print("Character not found") return end
+	if target == localPlayer then return end
+	if not target.Character or not localPlayer.Character then return end
 
 	local myRoot = localPlayer.Character:FindFirstChild("HumanoidRootPart")
-	local targetHead = target.Character:FindFirstChild("Head")
+	local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
 
-	if myRoot and targetHead then
-		print("Teleporting to " .. targetHead.Position)
-		local offset = Vector3.new(0, 0, -2)
-		myRoot.CFrame = CFrame.new(targetHead.Position + offset, targetHead.Position)
-
-		-- força a câmera a olhar para a cabeça
-		local camera = workspace.CurrentCamera
-		camera.CFrame = CFrame.new(camera.CFrame.Position, targetHead.Position)
-	else
-		print("Root or Head not found")
+	if myRoot and targetRoot then
+		myRoot.CFrame = targetRoot.CFrame * CFrame.new(0, 0, -3)
 	end
 end
 
