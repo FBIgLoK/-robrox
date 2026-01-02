@@ -360,22 +360,48 @@ _G.UpdateMasterESP = function()
 			-- Atualizar posição todo frame
 			RunService.RenderStepped:Connect(function()
 				if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-					local root = player.Character.HumanoidRootPart
-					local pos, onScreen = camera:WorldToViewportPoint(root.Position)
+					local character = player.Character
+					local humanoidRootPart = character.HumanoidRootPart
 
-					-- Mostrar mesmo atrás da parede
-					box.Visible = true
+					-- Calcular bounding box do personagem
+					local minY = math.huge
+					local maxY = -math.huge
+					local minX = math.huge
+					local maxX = -math.huge
 
-					-- Ajustar posição da box
-					local size = Vector3.new(2, 5, 1)  -- tamanho aproximado do player
-					local topPos = camera:WorldToViewportPoint(root.Position + Vector3.new(0, size.Y/2, 0))
-					local bottomPos = camera:WorldToViewportPoint(root.Position - Vector3.new(0, size.Y/2, 0))
+					for _, part in pairs(character:GetChildren()) do
+						if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+							local corners = {
+								part.CFrame * CFrame.new(-part.Size.X/2, -part.Size.Y/2, -part.Size.Z/2),
+								part.CFrame * CFrame.new(part.Size.X/2, -part.Size.Y/2, -part.Size.Z/2),
+								part.CFrame * CFrame.new(-part.Size.X/2, part.Size.Y/2, -part.Size.Z/2),
+								part.CFrame * CFrame.new(part.Size.X/2, part.Size.Y/2, -part.Size.Z/2),
+								part.CFrame * CFrame.new(-part.Size.X/2, -part.Size.Y/2, part.Size.Z/2),
+								part.CFrame * CFrame.new(part.Size.X/2, -part.Size.Y/2, part.Size.Z/2),
+								part.CFrame * CFrame.new(-part.Size.X/2, part.Size.Y/2, part.Size.Z/2),
+								part.CFrame * CFrame.new(part.Size.X/2, part.Size.Y/2, part.Size.Z/2)
+							}
 
-					local height = (topPos.Y - bottomPos.Y)
-					local width = height/2  -- box proporcional
+							for _, corner in pairs(corners) do
+								local screenPos = camera:WorldToViewportPoint(corner.Position)
+								minX = math.min(minX, screenPos.X)
+								maxX = math.max(maxX, screenPos.X)
+								minY = math.min(minY, screenPos.Y)
+								maxY = math.max(maxY, screenPos.Y)
+							end
+						end
+					end
 
-					box.Size = UDim2.new(0, width, 0, height)
-					box.Position = UDim2.new(0, topPos.X - width/2, 0, topPos.Y)
+					if minX < math.huge then
+						local width = maxX - minX
+						local height = maxY - minY
+
+						box.Size = UDim2.new(0, width, 0, height)
+						box.Position = UDim2.new(0, minX, 0, minY)
+						box.Visible = true
+					else
+						box.Visible = false
+					end
 				else
 					box.Visible = false
 				end
