@@ -6,42 +6,19 @@ screenGui.Name = "MenuGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
 
--- Loading Screen
-local loadingFrame = Instance.new("Frame")
-loadingFrame.Name = "LoadingFrame"
-loadingFrame.Size = UDim2.new(1, 0, 1, 0)
-loadingFrame.Position = UDim2.new(0, 0, 0, 0)
-loadingFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-loadingFrame.BackgroundTransparency = 0.5
-loadingFrame.Parent = screenGui
-
-local loadingText = Instance.new("TextLabel")
-loadingText.Name = "LoadingText"
-loadingText.Text = "Carregando UwU..."
-loadingText.Size = UDim2.new(0, 200, 0, 50)
-loadingText.Position = UDim2.new(0.5, -100, 0.5, -25)
-loadingText.BackgroundTransparency = 1
-loadingText.TextColor3 = Color3.fromRGB(255, 255, 255)
-loadingText.Font = Enum.Font.SourceSansBold
-loadingText.TextSize = 24
-loadingText.TextScaled = false
-loadingText.Parent = loadingFrame
-
--- Menu Frame
 local frame = Instance.new("Frame")
 frame.Name = "MenuFrame"
-frame.Size = UDim2.new(0, 300, 0, 200)
-frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+frame.Size = UDim2.new(0, 400, 0, 250)
+frame.Position = UDim2.new(0.5, -200, 0.5, -125)
 frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 frame.BackgroundTransparency = 0.3
 frame.BorderSizePixel = 2
 frame.BorderColor3 = Color3.fromRGB(255, 255, 255)
-frame.Visible = false
 frame.Parent = screenGui
 
 local title = Instance.new("TextLabel")
 title.Name = "Title"
-title.Text = "Menu"
+title.Text = "Fbi UwU HUB"
 title.Size = UDim2.new(1, 0, 0, 50)
 title.Position = UDim2.new(0, 0, 0, 0)
 title.BackgroundTransparency = 1
@@ -50,6 +27,27 @@ title.Font = Enum.Font.SourceSansBold
 title.TextSize = 24
 title.TextScaled = false
 title.Parent = frame
+
+local stripedLine = Instance.new("Frame")
+stripedLine.Name = "StripedLine"
+stripedLine.Size = UDim2.new(1, -20, 0, 5)
+stripedLine.Position = UDim2.new(0, 10, 0, 50)
+stripedLine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+stripedLine.BorderSizePixel = 0
+stripedLine.Parent = frame
+
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(0.25, Color3.fromRGB(0, 0, 0)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 0, 0)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(0.75, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(0.75, Color3.fromRGB(0, 0, 0)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
+}
+gradient.Parent = stripedLine
 
 local option1 = Instance.new("TextLabel")
 option1.Name = "Option1"
@@ -83,10 +81,3 @@ option3.TextColor3 = Color3.fromRGB(255, 255, 255)
 option3.Font = Enum.Font.SourceSans
 option3.TextSize = 18
 option3.Parent = frame
-
--- Simulate loading delay
-task.wait(3)  -- Wait 3 seconds
-
--- Hide loading screen and show menu
-loadingFrame:Destroy()
-frame.Visible = true
