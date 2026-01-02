@@ -572,6 +572,8 @@ playerList.BackgroundTransparency = 0
 playerList.BorderSizePixel = 0
 playerList.Visible = false
 playerList.ZIndex = 10
+playerList.CanvasSize = UDim2.new(0, 0, 0, 0)
+playerList.ScrollBarThickness = 6
 playerList.Parent = aimTab
 
 tpButton.MouseButton1Click:Connect(function()
@@ -594,25 +596,23 @@ local function populatePlayerList()
 		end
 	end
 	for _, player in pairs(Players:GetPlayers()) do
-		if player ~= localPlayer then
-			local btn = Instance.new("TextButton")
-			btn.Name = "PlayerButton_" .. player.Name
-			btn.Text = player.Name
-			btn.Size = UDim2.new(1, 0, 0, 30)
-			btn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-			btn.BackgroundTransparency = 0
-			btn.BorderSizePixel = 1
-			btn.BorderColor3 = Color3.fromRGB(128, 0, 128)
-			btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-			btn.Font = Enum.Font.SourceSans
-			btn.TextSize = 16
-			btn.Parent = playerList
-			btn.MouseButton1Click:Connect(function()
-				_G.SelectedPlayer = player
-				searchPlayerButton.Text = "procurar player: " .. player.Name .. " ▼"
-				playerList.Visible = false
-			end)
-		end
+		local btn = Instance.new("TextButton")
+		btn.Name = "PlayerButton_" .. player.Name
+		btn.Text = player.Name
+		btn.Size = UDim2.new(1, 0, 0, 30)
+		btn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+		btn.BackgroundTransparency = 0
+		btn.BorderSizePixel = 1
+		btn.BorderColor3 = Color3.fromRGB(128, 0, 128)
+		btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+		btn.Font = Enum.Font.SourceSans
+		btn.TextSize = 16
+		btn.Parent = playerList
+		btn.MouseButton1Click:Connect(function()
+			_G.SelectedPlayer = player
+			searchPlayerButton.Text = "procurar player: " .. player.Name .. " ▼"
+			playerList.Visible = false
+		end)
 	end
 end
 
@@ -634,29 +634,7 @@ _G.UpdateAIMBot = function()
 		-- Enable AIM Bot
 		print("AIM Bot enabled")
 
-		-- Create crosshair if not exists
-		local crosshairGui = localPlayer:WaitForChild("PlayerGui"):FindFirstChild("AIMCrosshair")
-		if not crosshairGui then
-			crosshairGui = Instance.new("ScreenGui")
-			crosshairGui.Name = "AIMCrosshair"
-			crosshairGui.Parent = localPlayer.PlayerGui
-
-			local crosshair = Instance.new("TextLabel")
-			crosshair.Text = "+"
-			crosshair.Size = UDim2.new(0, 20, 0, 20)
-			crosshair.Position = UDim2.new(0.5, -10, 0.5, -10)
-			crosshair.BackgroundTransparency = 1
-			crosshair.TextColor3 = Color3.new(1, 1, 1)
-			crosshair.Font = Enum.Font.SourceSansBold
-			crosshair.TextSize = 24
-			crosshair.Parent = crosshairGui
-		end
-
-		local function getTargetPlayer()
-			if _G.SelectedPlayer and _G.SelectedPlayer.Character and _G.SelectedPlayer.Character:FindFirstChild("Head") and _G.SelectedPlayer.Character:FindFirstChild("Humanoid") and _G.SelectedPlayer.Character.Humanoid.Health > 0 then
-				return _G.SelectedPlayer
-			end
-
+		local function getClosestPlayer()
 			local closest
 			local minDist = math.huge
 
@@ -687,7 +665,7 @@ _G.UpdateAIMBot = function()
 			return closest
 		end
 
-		-- Start aiming loop
+		-- Start teleport loop
 		if not _G.AimConnection then
 			_G.AimConnection = RunService.RenderStepped:Connect(function()
 				local myChar = localPlayer.Character
@@ -696,47 +674,34 @@ _G.UpdateAIMBot = function()
 				local myRoot = myChar:FindFirstChild("HumanoidRootPart")
 				if not myRoot then return end
 
-				local closest
-				local minDist = math.huge
-				local myPos = myRoot.Position
+				local target = getClosestPlayer()
+				if not target or not target.Character then return end
 
-				for _, player in pairs(Players:GetPlayers()) do
-					if player ~= localPlayer and player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
-						local head = player.Character.Head
-						local dist = (head.Position - myPos).Magnitude
-						if dist < minDist then
-							minDist = dist
-							closest = player
-						end
-					end
-				end
+				local targetHead = target.Character:FindFirstChild("Head")
+				if not targetHead then return end
 
-				if closest then
-					local targetHead = closest.Character.Head
-					local offset = Vector3.new(0, 0, -2)
-					myRoot.CFrame = CFrame.new(
-						targetHead.Position + offset,
-						targetHead.Position
-					)
-					local camera = workspace.CurrentCamera
-					camera.CFrame = CFrame.new(
-						camera.CFrame.Position,
-						targetHead.Position
-					)
-				end
+				-- posição ligeiramente atrás da cabeça do alvo
+				local offset = Vector3.new(0, 0, -2)
+
+				-- teleporta seu player olhando para o alvo
+				myRoot.CFrame = CFrame.new(
+					targetHead.Position + offset,
+					targetHead.Position
+				)
+
+				-- força a câmera a olhar para a cabeça
+				local camera = workspace.CurrentCamera
+				camera.CFrame = CFrame.new(
+					camera.CFrame.Position,
+					targetHead.Position
+				)
 			end)
 		end
 	else
 		-- Disable AIM Bot
 		print("AIM Bot disabled")
 
-		-- Remove crosshair
-		local crosshairGui = localPlayer.PlayerGui:FindFirstChild("AIMCrosshair")
-		if crosshairGui then
-			crosshairGui:Destroy()
-		end
-
-		-- Stop aiming
+		-- Stop teleporting
 		if _G.AimConnection then
 			_G.AimConnection:Disconnect()
 			_G.AimConnection = nil
