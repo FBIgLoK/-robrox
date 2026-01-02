@@ -8,13 +8,16 @@ screenGui.Parent = playerGui
 
 local frame = Instance.new("Frame")
 frame.Name = "MenuFrame"
-frame.Size = UDim2.new(0, 400, 0, 250)
-frame.Position = UDim2.new(0.5, -200, 0.5, -125)
-frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-frame.BackgroundTransparency = 0.3
-frame.BorderSizePixel = 2
-frame.BorderColor3 = Color3.fromRGB(255, 255, 255)
+frame.Size = UDim2.new(0, 1000, 0, 600)
+frame.Position = UDim2.new(0.5, -500, 0.5, -300)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.BackgroundTransparency = 0.1
+frame.BorderSizePixel = 0
 frame.Parent = screenGui
+
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 10)
+uiCorner.Parent = frame
 
 local title = Instance.new("TextLabel")
 title.Name = "Title"
@@ -28,56 +31,287 @@ title.TextSize = 24
 title.TextScaled = false
 title.Parent = frame
 
-local stripedLine = Instance.new("Frame")
-stripedLine.Name = "StripedLine"
-stripedLine.Size = UDim2.new(1, -20, 0, 5)
-stripedLine.Position = UDim2.new(0, 10, 0, 50)
-stripedLine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-stripedLine.BorderSizePixel = 0
-stripedLine.Parent = frame
+local thinLine = Instance.new("Frame")
+thinLine.Name = "ThinLine"
+thinLine.Size = UDim2.new(1, 0, 0, 2)
+thinLine.Position = UDim2.new(0, 0, 0, 50)
+thinLine.BackgroundColor3 = Color3.fromRGB(128, 0, 128) -- Purple
+thinLine.BorderSizePixel = 0
+thinLine.Parent = frame
 
-local gradient = Instance.new("UIGradient")
-gradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-    ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255, 255, 255)),
-    ColorSequenceKeypoint.new(0.25, Color3.fromRGB(0, 0, 0)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 0, 0)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-    ColorSequenceKeypoint.new(0.75, Color3.fromRGB(255, 255, 255)),
-    ColorSequenceKeypoint.new(0.75, Color3.fromRGB(0, 0, 0)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
-}
-gradient.Parent = stripedLine
+-- Sidebar (botões de abas) e aba Perfil
+local sidebar = Instance.new("Frame")
+sidebar.Name = "Sidebar"
+sidebar.Size = UDim2.new(0, 150, 1, -52)
+sidebar.Position = UDim2.new(0, 0, 0, 52)
+sidebar.BackgroundTransparency = 1
+sidebar.Parent = frame
 
-local option1 = Instance.new("TextLabel")
-option1.Name = "Option1"
-option1.Text = "Opção 1"
-option1.Size = UDim2.new(1, -20, 0, 30)
-option1.Position = UDim2.new(0, 10, 0, 60)
-option1.BackgroundTransparency = 1
-option1.TextColor3 = Color3.fromRGB(255, 255, 255)
-option1.Font = Enum.Font.SourceSans
-option1.TextSize = 18
-option1.Parent = frame
+local perfilButton = Instance.new("TextButton")
+perfilButton.Name = "PerfilButton"
+perfilButton.Size = UDim2.new(1, -20, 0, 40)
+perfilButton.Position = UDim2.new(0, 10, 0, 10)
+perfilButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+perfilButton.BorderSizePixel = 0
+perfilButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+perfilButton.Font = Enum.Font.SourceSans
+perfilButton.TextSize = 20
+perfilButton.Text = ""
+perfilButton.TextXAlignment = Enum.TextXAlignment.Left
 
-local option2 = Instance.new("TextLabel")
-option2.Name = "Option2"
-option2.Text = "Opção 2"
-option2.Size = UDim2.new(1, -20, 0, 30)
-option2.Position = UDim2.new(0, 10, 0, 100)
-option2.BackgroundTransparency = 1
-option2.TextColor3 = Color3.fromRGB(255, 255, 255)
-option2.Font = Enum.Font.SourceSans
-option2.TextSize = 18
-option2.Parent = frame
+-- Container interno para alinhar ícone e texto horizontalmente
+local contentHolder = Instance.new("Frame")
+contentHolder.Name = "ContentHolder"
+contentHolder.Size = UDim2.new(1, 0, 1, 0)
+contentHolder.BackgroundTransparency = 1
+contentHolder.Parent = perfilButton
 
-local option3 = Instance.new("TextLabel")
-option3.Name = "Option3"
-option3.Text = "Opção 3"
-option3.Size = UDim2.new(1, -20, 0, 30)
-option3.Position = UDim2.new(0, 10, 0, 140)
-option3.BackgroundTransparency = 1
-option3.TextColor3 = Color3.fromRGB(255, 255, 255)
-option3.Font = Enum.Font.SourceSans
-option3.TextSize = 18
-option3.Parent = frame
+local listLayout = Instance.new("UIListLayout")
+listLayout.FillDirection = Enum.FillDirection.Horizontal
+listLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+listLayout.Padding = UDim.new(0, 8)
+listLayout.Parent = contentHolder
+
+perfilButton.Parent = sidebar
+
+-- Icone real (ImageLabel). Substitua o Image pelo seu asset id.
+-- Icone como emoji (TextLabel) tintado de roxo
+-- Icone construído com UI (círculo roxo + silhueta branca)
+local iconFrame = Instance.new("Frame")
+iconFrame.Name = "Icon"
+iconFrame.Size = UDim2.new(0, 20, 0, 20)
+iconFrame.BackgroundColor3 = Color3.fromRGB(128, 0, 128)
+iconFrame.BorderSizePixel = 0
+iconFrame.Parent = contentHolder
+
+local iconCorner = Instance.new("UICorner")
+iconCorner.CornerRadius = UDim.new(1, 0)
+iconCorner.Parent = iconFrame
+
+-- cabeça (círculo branco)
+local head = Instance.new("Frame")
+head.Name = "Head"
+head.Size = UDim2.new(0, 7, 0, 7)
+head.Position = UDim2.new(0.5, -3.5, 0.3, -3.5)
+head.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+head.BorderSizePixel = 0
+head.Parent = iconFrame
+
+local headCorner = Instance.new("UICorner")
+headCorner.CornerRadius = UDim.new(1, 0)
+headCorner.Parent = head
+
+-- corpo (retângulo branco arredondado)
+local body = Instance.new("Frame")
+body.Name = "Body"
+body.Size = UDim2.new(0, 10, 0, 5)
+body.Position = UDim2.new(0.5, -5, 0.65, -2.5)
+body.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+body.BorderSizePixel = 0
+body.Parent = iconFrame
+
+local bodyCorner = Instance.new("UICorner")
+bodyCorner.CornerRadius = UDim.new(0, 3)
+bodyCorner.Parent = body
+
+-- ZIndex (garante que o ícone fique acima do fundo do botão)
+iconFrame.ZIndex = 3
+head.ZIndex = 4
+body.ZIndex = 4
+
+-- Texto interno do botão (agora controlado por um TextLabel filho)
+local perfilText = Instance.new("TextLabel")
+perfilText.Name = "PerfilText"
+perfilText.Size = UDim2.new(1, -28, 1, 0)
+perfilText.BackgroundTransparency = 1
+perfilText.Text = "Perfil"
+perfilText.TextColor3 = Color3.fromRGB(255, 255, 255)
+perfilText.Font = Enum.Font.SourceSans
+perfilText.TextSize = 20
+perfilText.TextXAlignment = Enum.TextXAlignment.Left
+perfilText.Parent = contentHolder
+
+local content = Instance.new("Frame")
+content.Name = "Content"
+content.Size = UDim2.new(1, -150, 1, -52)
+content.Position = UDim2.new(0, 150, 0, 52)
+content.BackgroundTransparency = 1
+content.Parent = frame
+
+-- Separador vertical entre sidebar e área de conteúdo
+local separator = Instance.new("Frame")
+separator.Name = "Separator"
+separator.Size = UDim2.new(0, 2, 1, -52)
+separator.Position = UDim2.new(0, 150, 0, 52)
+separator.BackgroundColor3 = Color3.fromRGB(128, 0, 128)
+separator.BorderSizePixel = 0
+separator.Parent = frame
+
+local perfilTab = Instance.new("Frame")
+perfilTab.Name = "PerfilTab"
+perfilTab.Size = UDim2.new(1, 0, 1, 0)
+perfilTab.BackgroundTransparency = 1
+perfilTab.Visible = false
+perfilTab.Parent = content
+	if espTab then espTab.Visible = false end
+
+-- Botão ESP abaixo do Perfil
+local espButton = Instance.new("TextButton")
+espButton.Name = "ESPButton"
+espButton.Size = UDim2.new(1, -20, 0, 40)
+espButton.Position = UDim2.new(0, 10, 0, 60)
+espButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+espButton.BorderSizePixel = 0
+espButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+espButton.Font = Enum.Font.SourceSans
+espButton.TextSize = 20
+espButton.Text = ""
+espButton.TextXAlignment = Enum.TextXAlignment.Left
+espButton.Parent = sidebar
+
+local espHolder = Instance.new("Frame")
+espHolder.Name = "ESPHolder"
+espHolder.Size = UDim2.new(1, 0, 1, 0)
+espHolder.BackgroundTransparency = 1
+espHolder.Parent = espButton
+
+local espLayout = Instance.new("UIListLayout")
+espLayout.FillDirection = Enum.FillDirection.Horizontal
+espLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+espLayout.Padding = UDim.new(0, 8)
+espLayout.Parent = espHolder
+
+local espIconFrame = Instance.new("Frame")
+espIconFrame.Name = "Icon"
+espIconFrame.Size = UDim2.new(0, 20, 0, 20)
+espIconFrame.BackgroundColor3 = Color3.fromRGB(128, 0, 128)
+espIconFrame.BorderSizePixel = 0
+espIconFrame.Parent = espHolder
+
+local espIconCorner = Instance.new("UICorner")
+espIconCorner.CornerRadius = UDim.new(1, 0)
+espIconCorner.Parent = espIconFrame
+
+local espText = Instance.new("TextLabel")
+espText.Name = "ESPText"
+espText.Size = UDim2.new(1, -28, 1, 0)
+espText.BackgroundTransparency = 1
+espText.Text = "ESP"
+espText.TextColor3 = Color3.fromRGB(255, 255, 255)
+espText.Font = Enum.Font.SourceSans
+espText.TextSize = 20
+espText.TextXAlignment = Enum.TextXAlignment.Left
+espText.Parent = espHolder
+
+-- (espButton click handler será definido após criar os toggles)
+
+-- Aba ESP (onde ficarão os toggles)
+local espTab = Instance.new("Frame")
+espTab.Name = "ESPTab"
+espTab.Size = UDim2.new(1, 0, 1, 0)
+espTab.BackgroundTransparency = 1
+espTab.Visible = false
+espTab.Parent = content
+
+local espTitle = Instance.new("TextLabel")
+espTitle.Name = "ESPTitle"
+espTitle.Text = "ESP Settings"
+espTitle.Size = UDim2.new(1, -20, 0, 30)
+espTitle.Position = UDim2.new(0, 10, 0, 10)
+espTitle.BackgroundTransparency = 1
+espTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+espTitle.Font = Enum.Font.SourceSans
+espTitle.TextSize = 20
+espTitle.Parent = espTab
+
+-- Helper to create a simple toggle row
+local function createToggleRow(parent, y, labelText, varName, updateFuncName)
+	local row = Instance.new("Frame")
+	row.Size = UDim2.new(1, -20, 0, 36)
+	row.Position = UDim2.new(0, 10, 0, y)
+	row.BackgroundTransparency = 1
+	row.Parent = parent
+
+	local lbl = Instance.new("TextLabel")
+	lbl.Name = "Label"
+	lbl.Size = UDim2.new(1, -70, 1, 0)
+	lbl.BackgroundTransparency = 1
+	lbl.Text = labelText
+	lbl.TextColor3 = Color3.fromRGB(255,255,255)
+	lbl.Font = Enum.Font.SourceSans
+	lbl.TextSize = 18
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
+	lbl.Parent = row
+
+	local toggle = Instance.new("TextButton")
+	toggle.Name = "Toggle"
+	toggle.Size = UDim2.new(0, 50, 0, 24)
+	toggle.Position = UDim2.new(1, -60, 0.5, -12)
+	toggle.BackgroundColor3 = Color3.fromRGB(60,60,60)
+	toggle.BorderSizePixel = 0
+	toggle.Parent = row
+
+	local knob = Instance.new("Frame")
+	knob.Name = "Knob"
+	knob.Size = UDim2.new(0, 20, 0, 20)
+	knob.Position = UDim2.new(0, 2, 0.5, -10)
+	knob.BackgroundColor3 = Color3.fromRGB(200,200,200)
+	knob.BorderSizePixel = 0
+	knob.Parent = toggle
+
+	local function updateVisual(state)
+		if state then
+			toggle.BackgroundColor3 = Color3.fromRGB(0, 170, 85)
+			knob.Position = UDim2.new(1, -22, 0.5, -10)
+			knob.BackgroundColor3 = Color3.fromRGB(255,255,255)
+		else
+			toggle.BackgroundColor3 = Color3.fromRGB(60,60,60)
+			knob.Position = UDim2.new(0, 2, 0.5, -10)
+			knob.BackgroundColor3 = Color3.fromRGB(200,200,200)
+		end
+	end
+
+	-- initialize from existing globals if present
+	local initState = false
+	if _G[varName] ~= nil then initState = _G[varName] end
+	updateVisual(initState)
+
+	toggle.MouseButton1Click:Connect(function()
+		initState = not initState
+		_G[varName] = initState
+		updateVisual(initState)
+		-- call update function if exists
+		if updateFuncName and type(_G[updateFuncName]) == "function" then
+			pcall(_G[updateFuncName])
+		end
+	end)
+end
+
+-- Create toggles (match names used in `sexo`)
+createToggleRow(espTab, 50, "ESP Players", "ESPPlayer", "UpdatePlayerChams")
+createToggleRow(espTab, 100, "ESP Fruits", "DevilFruitESP", "UpdateDevilChams")
+createToggleRow(espTab, 150, "ESP Island", "IslandESP", "UpdateIslandESP")
+createToggleRow(espTab, 200, "ESP Flower", "FlowerESP", "UpdateFlowerChams")
+
+-- agora conecta o clique do botão ESP (depois de a aba existir)
+espButton.MouseButton1Click:Connect(function()
+	espTab.Visible = true
+	perfilTab.Visible = false
+end)
+
+local perfilLabel = Instance.new("TextLabel")
+perfilLabel.Name = "PerfilLabel"
+perfilLabel.Text = "Bem-vindo ao seu Perfil"
+perfilLabel.Size = UDim2.new(1, -20, 0, 30)
+perfilLabel.Position = UDim2.new(0, 10, 0, 10)
+perfilLabel.BackgroundTransparency = 1
+perfilLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+perfilLabel.Font = Enum.Font.SourceSans
+perfilLabel.TextSize = 20
+perfilLabel.Parent = perfilTab
+
+perfilButton.MouseButton1Click:Connect(function()
+		-- mostra só a aba Perfil, esconde a aba ESP
+		if espTab then espTab.Visible = false end
+		perfilTab.Visible = true
+end)
