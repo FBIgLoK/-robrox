@@ -282,6 +282,47 @@ aimText.TextSize = 20
 aimText.TextXAlignment = Enum.TextXAlignment.Left
 aimText.Parent = aimHolder
 
+-- Botão Player
+local playerButton = Instance.new("TextButton")
+playerButton.Name = "PlayerButton"
+playerButton.Size = UDim2.new(1, -20, 0, 40)
+playerButton.Position = UDim2.new(0, 10, 0, 160)
+playerButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+playerButton.BackgroundTransparency = 1
+playerButton.BorderSizePixel = 0
+playerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+playerButton.Font = Enum.Font.SourceSans
+playerButton.TextSize = 20
+playerButton.Text = ""
+playerButton.TextXAlignment = Enum.TextXAlignment.Left
+playerButton.Parent = sidebar
+
+-- Ícone e texto do botão Player
+local playerHolder = Instance.new("Frame")
+playerHolder.Name = "PlayerHolder"
+playerHolder.Size = UDim2.new(1, 0, 1, 0)
+playerHolder.Position = UDim2.new(0, 0, 0, 0)
+playerHolder.BackgroundTransparency = 1
+playerHolder.Parent = playerButton
+
+local playerLayout = Instance.new("UIListLayout")
+playerLayout.FillDirection = Enum.FillDirection.Horizontal
+playerLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+playerLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+playerLayout.Padding = UDim.new(0, 8)
+playerLayout.Parent = playerHolder
+
+local playerText = Instance.new("TextLabel")
+playerText.Name = "PlayerText"
+playerText.Size = UDim2.new(1, 0, 1, 0)
+playerText.BackgroundTransparency = 1
+playerText.Text = "Player"
+playerText.TextColor3 = Color3.fromRGB(255, 255, 255)
+playerText.Font = Enum.Font.SourceSans
+playerText.TextSize = 20
+playerText.TextXAlignment = Enum.TextXAlignment.Left
+playerText.Parent = playerHolder
+
 -- Aba ESP
 local espTab = Instance.new("Frame")
 espTab.Name = "ESPTab"
@@ -292,7 +333,7 @@ espTab.Parent = content
 
 local espTitle = Instance.new("TextLabel")
 espTitle.Name = "ESPTitle"
-espTitle.Text = "ESP Settings"
+espTitle.Text = "ESP Configurações"
 espTitle.Size = UDim2.new(1, -20, 0, 30)
 espTitle.Position = UDim2.new(0, 10, 0, 10)
 espTitle.BackgroundTransparency = 1
@@ -522,6 +563,71 @@ aimTab.CanvasSize = UDim2.new(0, 0, 0, 500)
 aimTab.ScrollBarThickness = 6
 aimTab.Parent = content
 
+-- Aba Player
+local playerTab = Instance.new("Frame")
+playerTab.Name = "PlayerTab"
+playerTab.Size = UDim2.new(1, 0, 1, 0)
+playerTab.BackgroundTransparency = 1
+playerTab.Visible = false
+playerTab.Parent = content
+
+local playerTitle = Instance.new("TextLabel")
+playerTitle.Name = "PlayerTitle"
+playerTitle.Text = "Configurações do Player"
+playerTitle.Size = UDim2.new(1, -20, 0, 30)
+playerTitle.Position = UDim2.new(0, 10, 0, 10)
+playerTitle.BackgroundTransparency = 1
+playerTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+playerTitle.Font = Enum.Font.SourceSans
+playerTitle.TextSize = 20
+playerTitle.Parent = playerTab
+
+-- Function to update Infinite Jump
+_G.UpdateInfiniteJump = function()
+	if _G.InfiniteJump then
+		-- Enable Infinite Jump
+		if not _G.InfiniteJumpConnection then
+			_G.InfiniteJumpConnection = UserInputService.JumpRequest:Connect(function()
+				local character = localPlayer.Character
+				if not character then return end
+				local humanoid = character:FindFirstChildOfClass("Humanoid")
+				if humanoid then
+					humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+				end
+			end)
+		end
+	else
+		-- Disable Infinite Jump
+		if _G.InfiniteJumpConnection then
+			_G.InfiniteJumpConnection:Disconnect()
+			_G.InfiniteJumpConnection = nil
+		end
+	end
+end
+
+-- Function to update Speed Boost
+_G.UpdateSpeedBoost = function()
+	if _G.SpeedBoost then
+		-- Enable Speed Boost
+		local humanoid = localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid")
+		if humanoid then
+			humanoid.WalkSpeed = 100 -- Set high speed
+		end
+	else
+		-- Disable Speed Boost
+		local humanoid = localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid")
+		if humanoid then
+			humanoid.WalkSpeed = 16 -- Reset to default
+		end
+	end
+end
+
+-- Toggle Infinite Jump
+createToggleRow(playerTab, 50, "Pulo Infinito", "InfiniteJump", "UpdateInfiniteJump")
+
+-- Toggle Speed Boost
+createToggleRow(playerTab, 90, "Boost de Velocidade", "SpeedBoost", "UpdateSpeedBoost")
+
 local aimTitle = Instance.new("TextLabel")
 aimTitle.Name = "AIMTitle"
 aimTitle.Text = "Fuder Geral KKKKKKJ"
@@ -612,9 +718,9 @@ local teleportCorner = Instance.new("UICorner", teleportButton)
 teleportCorner.CornerRadius = UDim.new(0, 8)
 
 teleportButton.MouseButton1Click:Connect(function()
-    if selectedPlayer then
-        teleportToPlayer(selectedPlayer)
-    end
+	if selectedPlayer then
+		teleportToPlayer(selectedPlayer)
+	end
 end)
 
 -- Texto abaixo do teletransportar
@@ -652,10 +758,10 @@ _G.UpdateAIMBot = function()
 
 			for _, player in pairs(Players:GetPlayers()) do
 				if player ~= localPlayer
-				and player.Character
-				and player.Character:FindFirstChild("Head")
-				and player.Character:FindFirstChild("Humanoid")
-				and player.Character.Humanoid.Health > 0 then
+					and player.Character
+					and player.Character:FindFirstChild("Head")
+					and player.Character:FindFirstChild("Humanoid")
+					and player.Character.Humanoid.Health > 0 then
 
 					local head = player.Character.Head
 					local dist = (head.Position - myPos).Magnitude
@@ -719,6 +825,7 @@ espButton.MouseButton1Click:Connect(function()
 	espTab.Visible = true
 	perfilTab.Visible = false
 	aimTab.Visible = false
+	playerTab.Visible = false
 end)
 
 -- Botão Perfil abre aba Perfil
@@ -726,6 +833,7 @@ perfilButton.MouseButton1Click:Connect(function()
 	espTab.Visible = false
 	perfilTab.Visible = true
 	aimTab.Visible = false
+	playerTab.Visible = false
 end)
 
 -- Botão AIM abre aba AIM
@@ -733,6 +841,15 @@ aimButton.MouseButton1Click:Connect(function()
 	espTab.Visible = false
 	perfilTab.Visible = false
 	aimTab.Visible = true
+	playerTab.Visible = false
+end)
+
+-- Botão Player abre aba Player
+playerButton.MouseButton1Click:Connect(function()
+	espTab.Visible = false
+	perfilTab.Visible = false
+	aimTab.Visible = false
+	playerTab.Visible = true
 end)
 
 -- ===== VARIÁVEIS =====
