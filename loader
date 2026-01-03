@@ -612,9 +612,9 @@ local teleportCorner = Instance.new("UICorner", teleportButton)
 teleportCorner.CornerRadius = UDim.new(0, 8)
 
 teleportButton.MouseButton1Click:Connect(function()
-	if selectedPlayer then
-		teleportToPlayer(selectedPlayer)
-	end
+    if selectedPlayer then
+        teleportToPlayer(selectedPlayer)
+    end
 end)
 
 -- Texto abaixo do teletransportar
@@ -631,7 +631,7 @@ tpText.TextXAlignment = Enum.TextXAlignment.Center
 tpText.Parent = aimTab
 
 -- Toggle AIM Bot
-createToggleRow(aimTab, 390, "HS Pescoço do uriel", "AIMBot", "UpdateAIMBot")
+createToggleRow(aimTab, 370, "HS Pescoço do uriel", "AIMBot", "UpdateAIMBot")
 
 -- Function to update AIM Bot
 _G.UpdateAIMBot = function()
@@ -652,10 +652,10 @@ _G.UpdateAIMBot = function()
 
 			for _, player in pairs(Players:GetPlayers()) do
 				if player ~= localPlayer
-					and player.Character
-					and player.Character:FindFirstChild("Head")
-					and player.Character:FindFirstChild("Humanoid")
-					and player.Character.Humanoid.Health > 0 then
+				and player.Character
+				and player.Character:FindFirstChild("Head")
+				and player.Character:FindFirstChild("Humanoid")
+				and player.Character.Humanoid.Health > 0 then
 
 					local head = player.Character.Head
 					local dist = (head.Position - myPos).Magnitude
@@ -789,6 +789,8 @@ local function createPlayerButton(player)
 		selectedButton = btn
 		btn.BackgroundColor3 = Color3.fromRGB(128,0,128)
 		searchButton.Text = "Selecionado: " .. player.Name
+		listOpen = false
+		playerListFrame.Visible = false
 	end)
 end
 
