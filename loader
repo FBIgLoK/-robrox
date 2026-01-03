@@ -753,10 +753,7 @@ local function teleportToPlayer(target)
 	local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
 
 	if myRoot and targetRoot then
-		local humanoid = localPlayer.Character:FindFirstChild("Humanoid")
-		if humanoid then
-			humanoid:MoveTo(targetRoot.Position)
-		end
+		myRoot.CFrame = targetRoot.CFrame
 	end
 end
 
