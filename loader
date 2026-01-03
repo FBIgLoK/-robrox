@@ -533,16 +533,13 @@ aimTitle.Font = Enum.Font.SourceSans
 aimTitle.TextSize = 20
 aimTitle.Parent = aimTab
 
--- Player search dropdown
-local searchPlayerButton = Instance.new("TextButton")
+-- Player search label
+local searchPlayerButton = Instance.new("TextLabel")
 searchPlayerButton.Name = "SearchPlayerButton"
 searchPlayerButton.Text = "procurar player ▼"
 searchPlayerButton.Size = UDim2.new(1, -20, 0, 30)
 searchPlayerButton.Position = UDim2.new(0, 10, 0, 50)
-searchPlayerButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-searchPlayerButton.BackgroundTransparency = 0
-searchPlayerButton.BorderSizePixel = 1
-searchPlayerButton.BorderColor3 = Color3.fromRGB(128, 0, 128)
+searchPlayerButton.BackgroundTransparency = 1
 searchPlayerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 searchPlayerButton.Font = Enum.Font.SourceSans
 searchPlayerButton.TextSize = 18
@@ -551,7 +548,7 @@ searchPlayerButton.Parent = aimTab
 -- Texto entre os botões
 local selectText = Instance.new("TextLabel")
 selectText.Name = "SelectText"
-selectText.Text = "Clique aqui para selecionar um player."
+selectText.Text = "Clique no player para selecionar."
 selectText.Size = UDim2.new(1, -20, 0, 20)
 selectText.Position = UDim2.new(0, 10, 0, 80)
 selectText.BackgroundTransparency = 1
@@ -561,12 +558,49 @@ selectText.TextSize = 12
 selectText.TextXAlignment = Enum.TextXAlignment.Center
 selectText.Parent = aimTab
 
+-- Janela da lista de players
+local playerListFrame = Instance.new("Frame")
+playerListFrame.Size = UDim2.new(1, -20, 0, 200)
+playerListFrame.Position = UDim2.new(0, 10, 0, 100)
+playerListFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+playerListFrame.BorderSizePixel = 0
+playerListFrame.Parent = aimTab
+
+local corner = Instance.new("UICorner", playerListFrame)
+corner.CornerRadius = UDim.new(0, 12)
+
+-- Título da lista
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundTransparency = 1
+title.Text = "Players da Partida"
+title.TextColor3 = Color3.new(1,1,1)
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 18
+title.Parent = playerListFrame
+
+-- Área da lista
+local listFrame = Instance.new("ScrollingFrame")
+listFrame.Size = UDim2.new(1, -10, 1, -40)
+listFrame.Position = UDim2.new(0, 5, 0, 35)
+listFrame.CanvasSize = UDim2.new(0,0,0,0)
+listFrame.ScrollBarImageTransparency = 0.3
+listFrame.BackgroundTransparency = 1
+listFrame.Parent = playerListFrame
+
+local layout = Instance.new("UIListLayout", listFrame)
+layout.Padding = UDim.new(0, 6)
+
+layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+	listFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 5)
+end)
+
 -- Botão Teletransportar
 local teleportButton = Instance.new("TextButton")
 teleportButton.Name = "TeleportButton"
 teleportButton.Text = "teletransportar"
 teleportButton.Size = UDim2.new(1, -20, 0, 30)
-teleportButton.Position = UDim2.new(0, 10, 0, 100)
+teleportButton.Position = UDim2.new(0, 10, 0, 310)
 teleportButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 teleportButton.BackgroundTransparency = 0
 teleportButton.BorderSizePixel = 1
@@ -580,9 +614,9 @@ local teleportCorner = Instance.new("UICorner", teleportButton)
 teleportCorner.CornerRadius = UDim.new(0, 8)
 
 teleportButton.MouseButton1Click:Connect(function()
-    if selectedPlayer then
-        teleportToPlayer(selectedPlayer)
-    end
+	if selectedPlayer then
+		teleportToPlayer(selectedPlayer)
+	end
 end)
 
 -- Texto abaixo do teletransportar
@@ -590,7 +624,7 @@ local tpText = Instance.new("TextLabel")
 tpText.Name = "TPText"
 tpText.Text = "Clique aqui pra dar TP no player selecionado"
 tpText.Size = UDim2.new(1, -20, 0, 20)
-tpText.Position = UDim2.new(0, 10, 0, 135)
+tpText.Position = UDim2.new(0, 10, 0, 345)
 tpText.BackgroundTransparency = 1
 tpText.TextColor3 = Color3.fromRGB(128, 0, 128)
 tpText.Font = Enum.Font.SourceSans
@@ -599,7 +633,7 @@ tpText.TextXAlignment = Enum.TextXAlignment.Center
 tpText.Parent = aimTab
 
 -- Toggle AIM Bot
-createToggleRow(aimTab, 190, "HS Pescoço do uriel", "AIMBot", "UpdateAIMBot")
+createToggleRow(aimTab, 390, "HS Pescoço do uriel", "AIMBot", "UpdateAIMBot")
 
 -- Function to update AIM Bot
 _G.UpdateAIMBot = function()
@@ -620,10 +654,10 @@ _G.UpdateAIMBot = function()
 
 			for _, player in pairs(Players:GetPlayers()) do
 				if player ~= localPlayer
-				and player.Character
-				and player.Character:FindFirstChild("Head")
-				and player.Character:FindFirstChild("Humanoid")
-				and player.Character.Humanoid.Health > 0 then
+					and player.Character
+					and player.Character:FindFirstChild("Head")
+					and player.Character:FindFirstChild("Humanoid")
+					and player.Character.Humanoid.Health > 0 then
 
 					local head = player.Character.Head
 					local dist = (head.Position - myPos).Magnitude
@@ -706,44 +740,6 @@ end)
 local selectedPlayer = nil
 local selectedButton = nil
 
--- Janela
-local playerListFrame = Instance.new("Frame")
-playerListFrame.Size = UDim2.new(0, 260, 0, 360)
-playerListFrame.Position = UDim2.new(0, 200, 0, 100)
-playerListFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-playerListFrame.BorderSizePixel = 0
-playerListFrame.Visible = false
-playerListFrame.Parent = screenGui
-
-local corner = Instance.new("UICorner", playerListFrame)
-corner.CornerRadius = UDim.new(0, 12)
-
--- Título
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 40)
-title.BackgroundTransparency = 1
-title.Text = "Players da Partida"
-title.TextColor3 = Color3.new(1,1,1)
-title.Font = Enum.Font.SourceSansBold
-title.TextSize = 20
-title.Parent = playerListFrame
-
--- Área da lista
-local listFrame = Instance.new("ScrollingFrame")
-listFrame.Size = UDim2.new(1, -10, 0, 260)
-listFrame.Position = UDim2.new(0, 5, 0, 45)
-listFrame.CanvasSize = UDim2.new(0,0,0,0)
-listFrame.ScrollBarImageTransparency = 0.3
-listFrame.BackgroundTransparency = 1
-listFrame.Parent = playerListFrame
-
-local layout = Instance.new("UIListLayout", listFrame)
-layout.Padding = UDim.new(0, 6)
-
-layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-	listFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 5)
-end)
-
 -- Função de teleport
 local function teleportToPlayer(target)
 	if target == localPlayer then return end
@@ -753,7 +749,7 @@ local function teleportToPlayer(target)
 	local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
 
 	if myRoot and targetRoot then
-		myRoot.CFrame = targetRoot.CFrame
+		myRoot.CFrame = targetRoot.CFrame * CFrame.new(0, 0, -3)
 	end
 end
 
@@ -765,7 +761,7 @@ local function createButton(player)
 	btn.TextColor3 = Color3.new(1,1,1)
 	btn.Font = Enum.Font.SourceSans
 	btn.TextSize = 18
-	btn.Parent = listFrame
+	btn.Parent = aimTab.playerListFrame.listFrame
 
 	local c = Instance.new("UICorner", btn)
 	c.CornerRadius = UDim.new(0, 8)
@@ -800,13 +796,12 @@ local function createButton(player)
 		selectedButton = btn
 		btn.BackgroundColor3 = Color3.fromRGB(128, 0, 128)
 		searchPlayerButton.Text = player.Name
-		playerListFrame.Visible = false
 	end)
 end
 
 -- Atualizar lista
 local function refreshPlayers()
-	for _, v in pairs(listFrame:GetChildren()) do
+	for _, v in pairs(aimTab.playerListFrame.listFrame:GetChildren()) do
 		if v:IsA("TextButton") then
 			v:Destroy()
 		end
@@ -823,11 +818,3 @@ refreshPlayers()
 
 Players.PlayerAdded:Connect(refreshPlayers)
 Players.PlayerRemoving:Connect(refreshPlayers)
-
-searchPlayerButton.MouseButton1Click:Connect(function()
-	playerListFrame.Visible = not playerListFrame.Visible
-	if playerListFrame.Visible then
-		playerListFrame.Position = UDim2.new(0, searchPlayerButton.AbsolutePosition.X, 0, searchPlayerButton.AbsolutePosition.Y + searchPlayerButton.AbsoluteSize.Y)
-		refreshPlayers()
-	end
-end)
