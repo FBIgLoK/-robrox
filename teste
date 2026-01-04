@@ -1,67 +1,83 @@
+-- SERVICES
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local Camera = workspace.CurrentCamera
 
 local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
 
--- Pasta para guardar as linhas
-local tracersFolder = Instance.new("Folder")
-tracersFolder.Name = "ESP_Tracers"
-tracersFolder.Parent = LocalPlayer:WaitForChild("PlayerGui")
+-- CONFIG
+local AIM_KEY = Enum.UserInputType.MouseButton2 -- botão direito
+local AIM_PART = "Head"
+local SMOOTHNESS = 0.15
+local FOV_RADIUS = 120
 
-local tracers = {}
+local aiming = false
 
--- Criar linha
-local function createTracer(player)
-	if player == LocalPlayer then return end
+-- FOV CIRCLE
+local fov = Drawing.new("Circle")
+fov.Color = Color3.fromRGB(255, 255, 255)
+fov.Thickness = 2
+fov.NumSides = 100
+fov.Radius = FOV_RADIUS
+fov.Filled = false
+fov.Visible = true
 
-	local line = Drawing.new("Line")
-	line.Color = Color3.fromRGB(255, 0, 255)
-	line.Thickness = 2
-	line.Transparency = 1
-	line.Visible = false
-
-	tracers[player] = line
-end
-
--- Remover linha
-local function removeTracer(player)
-	if tracers[player] then
-		tracers[player]:Remove()
-		tracers[player] = nil
+-- INPUT
+UserInputService.InputBegan:Connect(function(input)
+	if input.UserInputType == AIM_KEY then
+		aiming = true
 	end
-end
+end)
 
--- Criar para players atuais
-for _, player in pairs(Players:GetPlayers()) do
-	createTracer(player)
-end
+UserInputService.InputEnded:Connect(function(input)
+	if input.UserInputType == AIM_KEY then
+		aiming = false
+	end
+end)
 
-Players.PlayerAdded:Connect(createTracer)
-Players.PlayerRemoving:Connect(removeTracer)
+-- FUNÇÃO: pegar alvo mais próximo do centro
+local function getClosestTarget()
+	local closestPlayer = nil
+	local shortestDistance = FOV_RADIUS
 
--- Atualizar linhas
-RunService.RenderStepped:Connect(function()
-	local screenSize = Camera.ViewportSize
-	local startPoint = Vector2.new(screenSize.X / 2, 0) -- topo da tela
+	for _, player in pairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer and player.Character then
+			local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+			local part = player.Character:FindFirstChild(AIM_PART)
 
-	for player, line in pairs(tracers) do
-		local character = player.Character
-		local root = character and character:FindFirstChild("HumanoidRootPart")
-		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+			if humanoid and humanoid.Health > 0 and part then
+				local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
 
-		if root and humanoid and humanoid.Health > 0 then
-			local pos, onScreen = Camera:WorldToViewportPoint(root.Position)
+				if onScreen then
+					local dist = (Vector2.new(screenPos.X, screenPos.Y) - UserInputService:GetMouseLocation()).Magnitude
 
-			if onScreen then
-				line.From = startPoint
-				line.To = Vector2.new(pos.X, pos.Y)
-				line.Visible = true
-			else
-				line.Visible = false
+					if dist < shortestDistance then
+						shortestDistance = dist
+						closestPlayer = part
+					end
+				end
 			end
-		else
-			line.Visible = false
+		end
+	end
+
+	return closestPlayer
+end
+
+-- LOOP
+RunService.RenderStepped:Connect(function()
+	local mousePos = UserInputService:GetMouseLocation()
+	fov.Position = mousePos
+
+	if aiming then
+		local target = getClosestTarget()
+
+		if target then
+			local camPos = Camera.CFrame.Position
+			local aimCFrame = CFrame.new(camPos, target.Position)
+
+			Camera.CFrame = Camera.CFrame:Lerp(aimCFrame, SMOOTHNESS)
 		end
 	end
 end)
