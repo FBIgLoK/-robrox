@@ -3,54 +3,44 @@ local RunService = game:GetService("RunService")
 local Camera = workspace.CurrentCamera
 
 local LocalPlayer = Players.LocalPlayer
-
 local AIM_PART = "Head"
-local FOV_RADIUS = 200
-local MAX_DISTANCE = 1000
+local MAX_DISTANCE = 2000
 
--- centro da tela
-local function getCenter()
-	return Vector2.new(
-		Camera.ViewportSize.X / 2,
-		Camera.ViewportSize.Y / 2
-	)
-end
+-- pega o player mais próximo de você
+local function getClosestPlayer()
+	local closestPlayer = nil
+	local shortestDistance = math.huge
 
--- pega o alvo mais próximo do centro
-local function getClosestTarget()
-	local closest = nil
-	local shortest = FOV_RADIUS
-	local center = getCenter()
+	local myChar = LocalPlayer.Character
+	if not myChar then return nil end
+
+	local myRoot = myChar:FindFirstChild("HumanoidRootPart")
+	if not myRoot then return nil end
 
 	for _, player in pairs(Players:GetPlayers()) do
 		if player ~= LocalPlayer and player.Character then
 			local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-			local head = player.Character:FindFirstChild(AIM_PART)
 			local root = player.Character:FindFirstChild("HumanoidRootPart")
+			local head = player.Character:FindFirstChild(AIM_PART)
 
-			if humanoid and humanoid.Health > 0 and head and root then
-				if (Camera.CFrame.Position - root.Position).Magnitude <= MAX_DISTANCE then
-					local pos, onScreen = Camera:WorldToViewportPoint(head.Position)
-					if onScreen then
-						local dist = (Vector2.new(pos.X, pos.Y) - center).Magnitude
-						if dist < shortest then
-							shortest = dist
-							closest = head
-						end
-					end
+			if humanoid and humanoid.Health > 0 and root and head then
+				local distance = (root.Position - myRoot.Position).Magnitude
+				if distance < shortestDistance and distance <= MAX_DISTANCE then
+					shortestDistance = distance
+					closestPlayer = head
 				end
 			end
 		end
 	end
 
-	return closest
+	return closestPlayer
 end
 
--- LOOP
+-- LOOP PRINCIPAL
 RunService.RenderStepped:Connect(function()
-	local target = getClosestTarget()
-	if target then
+	local targetHead = getClosestPlayer()
+	if targetHead then
 		local camPos = Camera.CFrame.Position
-		Camera.CFrame = CFrame.new(camPos, target.Position)
+		Camera.CFrame = CFrame.new(camPos, targetHead.Position)
 	end
 end)
