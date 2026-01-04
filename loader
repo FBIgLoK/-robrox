@@ -547,11 +547,108 @@ _G.UpdateESPName = function()
 	end
 end
 
+-- Function to update Tracer ESP
+_G.UpdateTracerESP = function()
+	if _G.TracerESP then
+		-- Enable Tracer ESP
+		local Players = game:GetService("Players")
+		local RunService = game:GetService("RunService")
+		local Camera = workspace.CurrentCamera
+		local LocalPlayer = Players.LocalPlayer
+
+		-- Pasta para guardar as linhas
+		local tracersFolder = Instance.new("Folder")
+		tracersFolder.Name = "ESP_Tracers"
+		tracersFolder.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+		local tracers = {}
+
+		-- Criar linha
+		local function createTracer(player)
+			if player == LocalPlayer then return end
+
+			local line = Drawing.new("Line")
+			line.Color = Color3.fromRGB(255, 0, 255)
+			line.Thickness = 2
+			line.Transparency = 1
+			line.Visible = false
+
+			tracers[player] = line
+		end
+
+		-- Remover linha
+		local function removeTracer(player)
+			if tracers[player] then
+				tracers[player]:Remove()
+				tracers[player] = nil
+			end
+		end
+
+		-- Criar para players atuais
+		for _, player in pairs(Players:GetPlayers()) do
+			createTracer(player)
+		end
+
+		local playerAdded = Players.PlayerAdded:Connect(createTracer)
+		local playerRemoving = Players.PlayerRemoving:Connect(removeTracer)
+
+		-- Atualizar linhas
+		local tracerConnection = RunService.RenderStepped:Connect(function()
+			local screenSize = Camera.ViewportSize
+			local startPoint = Vector2.new(screenSize.X / 2, 0) -- topo da tela
+
+			for player, line in pairs(tracers) do
+				local character = player.Character
+				local root = character and character:FindFirstChild("HumanoidRootPart")
+				local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+
+				if root and humanoid and humanoid.Health > 0 then
+					local pos, onScreen = Camera:WorldToViewportPoint(root.Position)
+
+					if onScreen then
+						line.From = startPoint
+						line.To = Vector2.new(pos.X, pos.Y)
+						line.Visible = true
+					else
+						line.Visible = false
+					end
+				else
+					line.Visible = false
+				end
+			end
+		end)
+
+		-- Store data for disable
+		_G.TracerESPData = {
+			tracersFolder = tracersFolder,
+			tracers = tracers,
+			tracerConnection = tracerConnection,
+			playerAdded = playerAdded,
+			playerRemoving = playerRemoving
+		}
+	else
+		-- Disable Tracer ESP
+		if _G.TracerESPData then
+			_G.TracerESPData.tracerConnection:Disconnect()
+			_G.TracerESPData.playerAdded:Disconnect()
+			_G.TracerESPData.playerRemoving:Disconnect()
+			for _, line in pairs(_G.TracerESPData.tracers) do
+				line:Remove()
+			end
+			_G.TracerESPData.tracersFolder:Destroy()
+			_G.TracerESPData = nil
+		end
+	end
+end
+
 -- Toggle Master ESP
 createToggleRow(espTab, 50, "Master ESP", "MasterESP", "UpdateMasterESP")
 
 -- Toggle ESP Name
 createToggleRow(espTab, 90, "Name ESP", "ESPName", "UpdateESPName")
+
+-- Toggle Tracer ESP
+createToggleRow(espTab, 130, "Tracer ESP", "TracerESP", "UpdateTracerESP")
 
 -- Aba AIM
 local aimTab = Instance.new("ScrollingFrame")
