@@ -7,33 +7,44 @@ local LocalPlayer = Players.LocalPlayer
 
 -- CONFIG
 local AIM_PART = "Head"
-local SMOOTHNESS = 0.12
-local FOV_RADIUS = 150 -- área do centro da tela
+local SMOOTHNESS = 0.35 -- quanto MAIOR, mais forte (0.3~0.5 ideal)
+local FOV_RADIUS = 180
+local MAX_DISTANCE = 1000
 
--- FUNÇÃO: alvo mais próximo do centro da tela
-local function getClosestTarget()
-	local closestPart = nil
-	local shortestDistance = FOV_RADIUS
+local currentTarget = nil
 
-	local viewportCenter = Vector2.new(
+-- centro da tela
+local function getViewportCenter()
+	return Vector2.new(
 		Camera.ViewportSize.X / 2,
 		Camera.ViewportSize.Y / 2
 	)
+end
+
+-- pega alvo mais próximo do centro
+local function getClosestTarget()
+	local closestPart = nil
+	local shortestDistance = FOV_RADIUS
+	local center = getViewportCenter()
 
 	for _, player in pairs(Players:GetPlayers()) do
 		if player ~= LocalPlayer and player.Character then
 			local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
 			local part = player.Character:FindFirstChild(AIM_PART)
+			local root = player.Character:FindFirstChild("HumanoidRootPart")
 
-			if humanoid and humanoid.Health > 0 and part then
-				local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
+			if humanoid and humanoid.Health > 0 and part and root then
+				local dist3D = (Camera.CFrame.Position - root.Position).Magnitude
+				if dist3D <= MAX_DISTANCE then
+					local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
 
-				if onScreen then
-					local dist = (Vector2.new(screenPos.X, screenPos.Y) - viewportCenter).Magnitude
+					if onScreen then
+						local dist2D = (Vector2.new(screenPos.X, screenPos.Y) - center).Magnitude
 
-					if dist < shortestDistance then
-						shortestDistance = dist
-						closestPart = part
+						if dist2D < shortestDistance then
+							shortestDistance = dist2D
+							closestPart = part
+						end
 					end
 				end
 			end
@@ -43,14 +54,34 @@ local function getClosestTarget()
 	return closestPart
 end
 
--- LOOP
+-- LOOP PRINCIPAL
 RunService.RenderStepped:Connect(function()
-	local target = getClosestTarget()
+	-- valida alvo atual
+	if currentTarget then
+		local humanoid = currentTarget.Parent:FindFirstChildOfClass("Humanoid")
+		if not humanoid or humanoid.Health <= 0 then
+			currentTarget = nil
+		else
+			local screenPos, onScreen = Camera:WorldToViewportPoint(currentTarget.Position)
+			if not onScreen then
+				currentTarget = nil
+			end
+		end
+	end
 
-	if target then
+	-- pega novo alvo se não tiver
+	if not currentTarget then
+		currentTarget = getClosestTarget()
+	end
+
+	-- mira
+	if currentTarget then
 		local camPos = Camera.CFrame.Position
-		local aimCFrame = CFrame.new(camPos, target.Position)
 
+		-- pequeno offset pra grudar melhor no rosto
+		local targetPos = currentTarget.Position + Vector3.new(0, 0.1, 0)
+
+		local aimCFrame = CFrame.new(camPos, targetPos)
 		Camera.CFrame = Camera.CFrame:Lerp(aimCFrame, SMOOTHNESS)
 	end
 end)
