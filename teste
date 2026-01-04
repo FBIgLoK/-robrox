@@ -1,14 +1,43 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local Camera = workspace.CurrentCamera
+local Workspace = game:GetService("Workspace")
 
 local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+
 local AIM_PART = "Head"
 local MAX_DISTANCE = 2000
 
--- pega o player mais próximo de você
-local function getClosestPlayer()
-	local closestPlayer = nil
+-- Raycast params
+local rayParams = RaycastParams.new()
+rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+rayParams.IgnoreWater = true
+
+-- verifica se o alvo está visível (sem parede)
+local function isVisible(targetPart)
+	local origin = Camera.CFrame.Position
+	local direction = (targetPart.Position - origin)
+
+	rayParams.FilterDescendantsInstances = {
+		LocalPlayer.Character,
+		targetPart.Parent
+	}
+
+	local rayResult = Workspace:Raycast(origin, direction, rayParams)
+
+	if rayResult then
+		-- se bateu em algo que NÃO é o player, tem parede
+		if not rayResult.Instance:IsDescendantOf(targetPart.Parent) then
+			return false
+		end
+	end
+
+	return true
+end
+
+-- pega o player mais próximo VISÍVEL
+local function getClosestVisiblePlayer()
+	local closestTarget = nil
 	local shortestDistance = math.huge
 
 	local myChar = LocalPlayer.Character
@@ -25,20 +54,23 @@ local function getClosestPlayer()
 
 			if humanoid and humanoid.Health > 0 and root and head then
 				local distance = (root.Position - myRoot.Position).Magnitude
+
 				if distance < shortestDistance and distance <= MAX_DISTANCE then
-					shortestDistance = distance
-					closestPlayer = head
+					if isVisible(head) then
+						shortestDistance = distance
+						closestTarget = head
+					end
 				end
 			end
 		end
 	end
 
-	return closestPlayer
+	return closestTarget
 end
 
 -- LOOP PRINCIPAL
 RunService.RenderStepped:Connect(function()
-	local targetHead = getClosestPlayer()
+	local targetHead = getClosestVisiblePlayer()
 	if targetHead then
 		local camPos = Camera.CFrame.Position
 		Camera.CFrame = CFrame.new(camPos, targetHead.Position)
