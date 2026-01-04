@@ -622,11 +622,68 @@ _G.UpdateSpeedBoost = function()
 	end
 end
 
+-- Function to update Fly
+_G.UpdateFly = function()
+	if _G.Fly then
+		-- Enable Fly
+		local character = localPlayer.Character
+		if character then
+			local humanoid = character:FindFirstChildOfClass("Humanoid")
+			local rootPart = character:FindFirstChild("HumanoidRootPart")
+			local camera = workspace.CurrentCamera
+			if humanoid and rootPart and camera then
+				humanoid.PlatformStand = true
+				local bv = Instance.new("BodyVelocity")
+				bv.Velocity = Vector3.zero
+				bv.MaxForce = Vector3.new(10000, 10000, 10000)
+				bv.Name = "FlyBV"
+				bv.Parent = rootPart
+				local bg = Instance.new("BodyGyro")
+				bg.MaxTorque = Vector3.new(4000, 4000, 4000)
+				bg.Name = "FlyBG"
+				bg.Parent = rootPart
+				_G.FlyConnection = RunService.RenderStepped:Connect(function()
+					local moveDirection = Vector3.zero
+					if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDirection = moveDirection + camera.CFrame.LookVector end
+					if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDirection = moveDirection - camera.CFrame.LookVector end
+					if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDirection = moveDirection - camera.CFrame.RightVector end
+					if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDirection = moveDirection + camera.CFrame.RightVector end
+					if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDirection = moveDirection + Vector3.new(0, 1, 0) end
+					if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then moveDirection = moveDirection - Vector3.new(0, 1, 0) end
+					bv.Velocity = moveDirection * 50
+					bg.CFrame = camera.CFrame
+				end)
+			end
+		end
+	else
+		-- Disable Fly
+		local character = localPlayer.Character
+		if character then
+			local humanoid = character:FindFirstChildOfClass("Humanoid")
+			local rootPart = character:FindFirstChild("HumanoidRootPart")
+			if humanoid then humanoid.PlatformStand = false end
+			if rootPart then
+				local bv = rootPart:FindFirstChild("FlyBV")
+				if bv then bv:Destroy() end
+				local bg = rootPart:FindFirstChild("FlyBG")
+				if bg then bg:Destroy() end
+			end
+			if _G.FlyConnection then
+				_G.FlyConnection:Disconnect()
+				_G.FlyConnection = nil
+			end
+		end
+	end
+end
+
 -- Toggle Infinite Jump
 createToggleRow(playerTab, 50, "Pulo Infinito", "InfiniteJump", "UpdateInfiniteJump")
 
 -- Toggle Speed Boost
 createToggleRow(playerTab, 90, "Boost de Velocidade", "SpeedBoost", "UpdateSpeedBoost")
+
+-- Toggle Fly
+createToggleRow(playerTab, 130, "Fly", "Fly", "UpdateFly")
 
 local aimTitle = Instance.new("TextLabel")
 aimTitle.Name = "AIMTitle"
@@ -718,9 +775,9 @@ local teleportCorner = Instance.new("UICorner", teleportButton)
 teleportCorner.CornerRadius = UDim.new(0, 8)
 
 teleportButton.MouseButton1Click:Connect(function()
-	if selectedPlayer then
-		teleportToPlayer(selectedPlayer)
-	end
+    if selectedPlayer then
+        teleportToPlayer(selectedPlayer)
+    end
 end)
 
 -- Texto abaixo do teletransportar
@@ -758,10 +815,10 @@ _G.UpdateAIMBot = function()
 
 			for _, player in pairs(Players:GetPlayers()) do
 				if player ~= localPlayer
-					and player.Character
-					and player.Character:FindFirstChild("Head")
-					and player.Character:FindFirstChild("Humanoid")
-					and player.Character.Humanoid.Health > 0 then
+				and player.Character
+				and player.Character:FindFirstChild("Head")
+				and player.Character:FindFirstChild("Humanoid")
+				and player.Character.Humanoid.Health > 0 then
 
 					local head = player.Character.Head
 					local dist = (head.Position - myPos).Magnitude
