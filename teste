@@ -1,0 +1,67 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+
+local LocalPlayer = Players.LocalPlayer
+
+-- Pasta para guardar as linhas
+local tracersFolder = Instance.new("Folder")
+tracersFolder.Name = "ESP_Tracers"
+tracersFolder.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local tracers = {}
+
+-- Criar linha
+local function createTracer(player)
+	if player == LocalPlayer then return end
+
+	local line = Drawing.new("Line")
+	line.Color = Color3.fromRGB(255, 0, 255)
+	line.Thickness = 2
+	line.Transparency = 1
+	line.Visible = false
+
+	tracers[player] = line
+end
+
+-- Remover linha
+local function removeTracer(player)
+	if tracers[player] then
+		tracers[player]:Remove()
+		tracers[player] = nil
+	end
+end
+
+-- Criar para players atuais
+for _, player in pairs(Players:GetPlayers()) do
+	createTracer(player)
+end
+
+Players.PlayerAdded:Connect(createTracer)
+Players.PlayerRemoving:Connect(removeTracer)
+
+-- Atualizar linhas
+RunService.RenderStepped:Connect(function()
+	local screenSize = Camera.ViewportSize
+	local startPoint = Vector2.new(screenSize.X / 2, 0) -- topo da tela
+
+	for player, line in pairs(tracers) do
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+
+		if root and humanoid and humanoid.Health > 0 then
+			local pos, onScreen = Camera:WorldToViewportPoint(root.Position)
+
+			if onScreen then
+				line.From = startPoint
+				line.To = Vector2.new(pos.X, pos.Y)
+				line.Visible = true
+			else
+				line.Visible = false
+			end
+		else
+			line.Visible = false
+		end
+	end
+end)
