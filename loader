@@ -1395,6 +1395,9 @@ tpText.Parent = aimTab
 -- Toggle AIM Bot
 createToggleRow(aimTab, 370, "HS Pescoço do uriel", "AIMBot", "UpdateAIMBot")
 
+-- Toggle FFH4X
+createToggleRow(aimTab, 410, "FFH4X", "FFH4X", "UpdateFFH4X")
+
 -- Function to update AIM Bot
 _G.UpdateAIMBot = function()
 	if _G.AIMBot then
