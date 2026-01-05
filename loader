@@ -455,7 +455,7 @@ end
 _G.UpdateMasterESP = function()
 	if _G.MasterESP then
 		-- Enable ESP
-		local function criarESP(player)
+		local function criarESP(model)
 			local function aplicar(character)
 				if character:FindFirstChild("ESPHighlight") then return end
 
@@ -469,13 +469,18 @@ _G.UpdateMasterESP = function()
 				highlight.Parent = character
 			end
 
-			-- Aplica caso o character já exista
-			if player.Character then
-				aplicar(player.Character)
-			end
+			if model:IsA("Player") then
+				-- Aplica caso o character já exista
+				if model.Character then
+					aplicar(model.Character)
+				end
 
-			-- Aplica quando o character aparecer (respawn)
-			player.CharacterAdded:Connect(aplicar)
+				-- Aplica quando o character aparecer (respawn)
+				model.CharacterAdded:Connect(aplicar)
+			else
+				-- Para entidades (models)
+				aplicar(model)
+			end
 		end
 
 		-- Aplica ESP para todos os players existentes
@@ -485,11 +490,30 @@ _G.UpdateMasterESP = function()
 
 		-- Aplica ESP para players que entrarem depois
 		Players.PlayerAdded:Connect(criarESP)
+
+		-- Aplica ESP para entidades se ESP Entidade ativo
+		if _G.ESPEntity then
+			for _, model in pairs(workspace:GetDescendants()) do
+				if model:IsA("Model") and model ~= localPlayer.Character then
+					local humanoid = model:FindFirstChildOfClass("Humanoid")
+					if humanoid and humanoid.Health > 0 then
+						criarESP(model)
+					end
+				end
+			end
+		end
 	else
 		-- Disable ESP
 		for _, player in pairs(Players:GetPlayers()) do
 			if player.Character and player.Character:FindFirstChild("ESPHighlight") then
 				player.Character.ESPHighlight:Destroy()
+			end
+		end
+
+		-- Disable ESP for entities
+		for _, model in pairs(workspace:GetDescendants()) do
+			if model:IsA("Model") and model:FindFirstChild("ESPHighlight") then
+				model.ESPHighlight:Destroy()
 			end
 		end
 	end
@@ -508,19 +532,19 @@ _G.UpdateESPName = function()
 
 		local camera = workspace.CurrentCamera
 
-		local function createESPName(player)
+		local function createESPName(model, displayName)
 			local nameLabel = Instance.new("TextLabel")
-			nameLabel.Name = "ESP_Name_" .. player.Name
+			nameLabel.Name = "ESP_Name_" .. displayName
 			nameLabel.Size = UDim2.new(0, 200, 0, 20)
 			nameLabel.BackgroundTransparency = 1
 			nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 			nameLabel.TextStrokeTransparency = 0
 			nameLabel.TextScaled = true
-			nameLabel.Text = player.Name
+			nameLabel.Text = displayName
 			nameLabel.Parent = screenGui
 
 			local healthBar = Instance.new("Frame")
-			healthBar.Name = "ESP_Health_" .. player.Name
+			healthBar.Name = "ESP_Health_" .. displayName
 			healthBar.Size = UDim2.new(0, 100, 0, 10)
 			healthBar.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 			healthBar.BorderSizePixel = 1
@@ -535,9 +559,21 @@ _G.UpdateESPName = function()
 			healthFill.Parent = healthBar
 
 			RunService.RenderStepped:Connect(function()
-				if player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("Humanoid") then
-					local head = player.Character.Head
-					local humanoid = player.Character.Humanoid
+				local head, humanoid, rootPart
+				if model:IsA("Player") then
+					local character = model.Character
+					if character then
+						head = character:FindFirstChild("Head")
+						humanoid = character:FindFirstChild("Humanoid")
+						rootPart = character:FindFirstChild("HumanoidRootPart")
+					end
+				else
+					head = model:FindFirstChild("Head")
+					humanoid = model:FindFirstChildOfClass("Humanoid")
+					rootPart = model:FindFirstChild("HumanoidRootPart")
+				end
+
+				if head and humanoid then
 					local headPos = head.Position + Vector3.new(0, head.Size.Y/2 + 1, 0)
 					local headScreen = camera:WorldToViewportPoint(headPos)
 
@@ -548,7 +584,6 @@ _G.UpdateESPName = function()
 						nameLabel.Visible = false
 					end
 
-					local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
 					if rootPart then
 						local rootScreen = camera:WorldToViewportPoint(rootPart.Position + Vector3.new(2, 0, 0))
 						if rootScreen.Z > 0 then
@@ -571,15 +606,27 @@ _G.UpdateESPName = function()
 
 		for _, player in pairs(Players:GetPlayers()) do
 			if player ~= localPlayer then
-				createESPName(player)
+				createESPName(player, player.Name)
 			end
 		end
 
 		Players.PlayerAdded:Connect(function(player)
 			if player ~= localPlayer then
-				createESPName(player)
+				createESPName(player, player.Name)
 			end
 		end)
+
+		-- Apply to entities if ESP Entidade is enabled
+		if _G.ESPEntity then
+			for _, model in pairs(workspace:GetDescendants()) do
+				if model:IsA("Model") and model ~= localPlayer.Character then
+					local humanoid = model:FindFirstChildOfClass("Humanoid")
+					if humanoid and humanoid.Health > 0 then
+						createESPName(model, model.Name)
+					end
+				end
+			end
+		end
 	else
 		-- Disable ESP Name
 		local existingGui = game.Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("ESP_Name_GUI")
@@ -604,43 +651,79 @@ _G.UpdateTracerESP = function()
 		local tracers = {}
 
 		-- Criar linha
-		local function createTracer(player)
-			if player == LocalPlayer then return end
-
+		local function createTracer(model, displayName)
 			local line = Drawing.new("Line")
 			line.Color = Color3.fromRGB(255, 0, 255)
 			line.Thickness = 2
 			line.Transparency = 1
 			line.Visible = false
 
-			tracers[player] = line
+			tracers[model] = line
 		end
 
 		-- Remover linha
-		local function removeTracer(player)
-			if tracers[player] then
-				tracers[player]:Remove()
-				tracers[player] = nil
+		local function removeTracer(model)
+			if tracers[model] then
+				tracers[model]:Remove()
+				tracers[model] = nil
 			end
 		end
 
 		-- Criar para players atuais
 		for _, player in pairs(Players:GetPlayers()) do
-			createTracer(player)
+			if player ~= LocalPlayer then
+				createTracer(player, player.Name)
+			end
 		end
 
-		local playerAdded = Players.PlayerAdded:Connect(createTracer)
+		-- Criar para entidades se ESP Entidade ativo
+		if _G.ESPEntity then
+			for _, model in pairs(workspace:GetDescendants()) do
+				if model:IsA("Model") and model ~= LocalPlayer.Character then
+					local humanoid = model:FindFirstChildOfClass("Humanoid")
+					if humanoid and humanoid.Health > 0 then
+						createTracer(model, model.Name)
+					end
+				end
+			end
+		end
+
+		local playerAdded = Players.PlayerAdded:Connect(function(player)
+			if player ~= LocalPlayer then
+				createTracer(player, player.Name)
+			end
+		end)
 		local playerRemoving = Players.PlayerRemoving:Connect(removeTracer)
+
+		-- Verificar novas entidades periodicamente
+		local entityCheckConnection = RunService.Heartbeat:Connect(function()
+			if _G.ESPEntity then
+				for _, model in pairs(workspace:GetDescendants()) do
+					if model:IsA("Model") and model ~= LocalPlayer.Character and not tracers[model] then
+						local humanoid = model:FindFirstChildOfClass("Humanoid")
+						if humanoid and humanoid.Health > 0 then
+							createTracer(model, model.Name)
+						end
+					end
+				end
+			end
+		end)
 
 		-- Atualizar linhas
 		local tracerConnection = RunService.RenderStepped:Connect(function()
 			local screenSize = Camera.ViewportSize
 			local startPoint = Vector2.new(screenSize.X / 2, 0) -- topo da tela
 
-			for player, line in pairs(tracers) do
-				local character = player.Character
-				local root = character and character:FindFirstChild("HumanoidRootPart")
-				local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+			for model, line in pairs(tracers) do
+				local root, humanoid
+				if model:IsA("Player") then
+					local character = model.Character
+					root = character and character:FindFirstChild("HumanoidRootPart")
+					humanoid = character and character:FindFirstChildOfClass("Humanoid")
+				else
+					root = model:FindFirstChild("HumanoidRootPart")
+					humanoid = model:FindFirstChildOfClass("Humanoid")
+				end
 
 				if root and humanoid and humanoid.Health > 0 then
 					local pos, onScreen = Camera:WorldToViewportPoint(root.Position)
@@ -664,7 +747,8 @@ _G.UpdateTracerESP = function()
 			tracers = tracers,
 			tracerConnection = tracerConnection,
 			playerAdded = playerAdded,
-			playerRemoving = playerRemoving
+			playerRemoving = playerRemoving,
+			entityCheckConnection = entityCheckConnection
 		}
 	else
 		-- Disable Tracer ESP
@@ -681,6 +765,14 @@ _G.UpdateTracerESP = function()
 	end
 end
 
+-- Function to update ESP Entidade
+_G.UpdateESPEntity = function()
+	-- Refresh ESP functions to apply to entities if enabled
+	_G.UpdateMasterESP()
+	_G.UpdateESPName()
+	_G.UpdateTracerESP()
+end
+
 -- Toggle Master ESP
 createToggleRow(espTab, 50, "Master ESP", "MasterESP", "UpdateMasterESP")
 
@@ -689,6 +781,9 @@ createToggleRow(espTab, 90, "Name ESP", "ESPName", "UpdateESPName")
 
 -- Toggle Tracer ESP
 createToggleRow(espTab, 130, "Tracer ESP", "TracerESP", "UpdateTracerESP")
+
+-- Toggle ESP Entidade
+createToggleRow(espTab, 170, "ESP Entidade", "ESPEntity", "UpdateESPEntity")
 
 -- Aba AIM
 local aimTab = Instance.new("ScrollingFrame")
@@ -1433,9 +1528,9 @@ local teleportCorner = Instance.new("UICorner", teleportButton)
 teleportCorner.CornerRadius = UDim.new(0, 8)
 
 teleportButton.MouseButton1Click:Connect(function()
-    if selectedPlayer then
-        teleportToPlayer(selectedPlayer)
-    end
+	if selectedPlayer then
+		teleportToPlayer(selectedPlayer)
+	end
 end)
 
 -- Texto abaixo do teletransportar
@@ -1457,6 +1552,11 @@ createToggleRow(aimTab, 370, "HS Pescoço do uriel", "AIMBot", "UpdateAIMBot")
 -- Toggle FFH4X
 createToggleRow(newAIMTab, 50, "FFH4X", "FFH4X", "UpdateFFH4X")
 
+-- Toggle AIM Disfarçado
+createToggleRow(newAIMTab, 90, "AIM Disfarçado", "AIMDisfarcado", "UpdateAIMDisfarcado")
+
+
+
 -- Function to update AIM Bot
 _G.UpdateAIMBot = function()
 	if _G.AIMBot then
@@ -1476,10 +1576,10 @@ _G.UpdateAIMBot = function()
 
 			for _, player in pairs(Players:GetPlayers()) do
 				if player ~= localPlayer
-				and player.Character
-				and player.Character:FindFirstChild("Head")
-				and player.Character:FindFirstChild("Humanoid")
-				and player.Character.Humanoid.Health > 0 then
+					and player.Character
+					and player.Character:FindFirstChild("Head")
+					and player.Character:FindFirstChild("Humanoid")
+					and player.Character.Humanoid.Health > 0 then
 
 					local head = player.Character.Head
 					local dist = (head.Position - myPos).Magnitude
@@ -1655,6 +1755,165 @@ _G.UpdateFFH4X = function()
 		end
 	end
 end
+
+-- Function to update AIM Disfarçado
+_G.UpdateAIMDisfarcado = function()
+	if _G.AIMDisfarcado then
+		-- Enable AIM Disfarçado
+		print("AIM Disfarçado enabled")
+
+		local Players = game:GetService("Players")
+		local RunService = game:GetService("RunService")
+		local Workspace = game:GetService("Workspace")
+
+		local LocalPlayer = Players.LocalPlayer
+		local Camera = Workspace.CurrentCamera
+		local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+		-- CONFIG
+		local FOV_RADIUS = 120
+		local SMOOTHNESS = 0.12
+		local MAX_DISTANCE = 2000
+		local AIM_PART = "Head"
+
+		-- Enable FOV Circle
+		if not _G.AimFOVGui then
+			_G.AimFOVGui = Instance.new("ScreenGui")
+			_G.AimFOVGui.Name = "AimFOV"
+			_G.AimFOVGui.ResetOnSpawn = false
+			_G.AimFOVGui.Parent = PlayerGui
+
+			local circle = Instance.new("Frame")
+			circle.Size = UDim2.new(0, FOV_RADIUS * 2, 0, FOV_RADIUS * 2)
+			circle.AnchorPoint = Vector2.new(0.5, 0.5)
+			circle.Position = UDim2.new(0.5, 0, 0.5, 0)
+			circle.BackgroundTransparency = 1
+			circle.Parent = _G.AimFOVGui
+
+			local stroke = Instance.new("UIStroke", circle)
+			stroke.Thickness = 2
+			stroke.Color = Color3.fromRGB(170, 0, 255)
+
+			local corner = Instance.new("UICorner", circle)
+			corner.CornerRadius = UDim.new(1, 0)
+		end
+
+		-- =========================
+		-- RAYCAST (ANTI WALL)
+		-- =========================
+		local rayParams = RaycastParams.new()
+		rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+		rayParams.IgnoreWater = true
+
+		local function isVisible(part)
+			if not part then return false end
+
+			local origin = Camera.CFrame.Position
+			local direction = part.Position - origin
+
+			rayParams.FilterDescendantsInstances = {
+				LocalPlayer.Character
+			}
+
+			local result = Workspace:Raycast(origin, direction, rayParams)
+
+			-- se bateu em algo que NÃO é o alvo → parede
+			if result then
+				if not result.Instance:IsDescendantOf(part.Parent) then
+					return false
+				end
+			end
+
+			return true
+		end
+
+		-- =========================
+		-- DENTRO DO CÍRCULO
+		-- =========================
+		local function insideFOV(worldPos)
+			local screenPos, onScreen = Camera:WorldToViewportPoint(worldPos)
+			if not onScreen then return false end
+
+			local center = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+			local point = Vector2.new(screenPos.X, screenPos.Y)
+
+			return (point - center).Magnitude <= FOV_RADIUS
+		end
+
+		-- =========================
+		-- BUSCA ALVO (PLAYER + NPC)
+		-- =========================
+		local function getClosestTarget()
+			local closest = nil
+			local shortest = math.huge
+
+			local myChar = LocalPlayer.Character
+			if not myChar then return nil end
+
+			local myRoot = myChar:FindFirstChild("HumanoidRootPart")
+			if not myRoot then return nil end
+
+			for _, model in ipairs(Workspace:GetDescendants()) do
+				if model:IsA("Model") then
+					local hum = model:FindFirstChildOfClass("Humanoid")
+					local root = model:FindFirstChild("HumanoidRootPart")
+					local head = model:FindFirstChild(AIM_PART)
+
+					if hum and hum.Health > 0 and root and head then
+						-- ignora você mesmo
+						if Players:GetPlayerFromCharacter(model) == LocalPlayer then
+							continue
+						end
+
+						local dist = (root.Position - myRoot.Position).Magnitude
+						if dist <= MAX_DISTANCE then
+							if insideFOV(head.Position) and isVisible(head) then
+								if dist < shortest then
+									shortest = dist
+									closest = head
+								end
+							end
+						end
+					end
+				end
+			end
+
+			return closest
+		end
+
+		-- =========================
+		-- LOOP AIM SUAVE
+		-- =========================
+		if not _G.AIMDisfarcadoConnection then
+			_G.AIMDisfarcadoConnection = RunService.RenderStepped:Connect(function()
+				local target = getClosestTarget()
+				if not target then return end
+
+				local camCF = Camera.CFrame
+				local desiredCF = CFrame.new(camCF.Position, target.Position)
+
+				Camera.CFrame = camCF:Lerp(desiredCF, SMOOTHNESS)
+			end)
+		end
+	else
+		-- Disable AIM Disfarçado
+		print("AIM Disfarçado disabled")
+
+		-- Disable FOV Circle
+		if _G.AimFOVGui then
+			_G.AimFOVGui:Destroy()
+			_G.AimFOVGui = nil
+		end
+
+		-- Stop aim loop
+		if _G.AIMDisfarcadoConnection then
+			_G.AIMDisfarcadoConnection:Disconnect()
+			_G.AIMDisfarcadoConnection = nil
+		end
+	end
+end
+
+
 
 -- Botão ESP abre aba ESP
 espButton.MouseButton1Click:Connect(function()
