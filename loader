@@ -200,11 +200,51 @@ perfilLabel.Font = Enum.Font.SourceSans
 perfilLabel.TextSize = 20
 perfilLabel.Parent = perfilTab
 
+-- Botão AIM (novo)
+local newAIMButton = Instance.new("TextButton")
+newAIMButton.Name = "NewAIMButton"
+newAIMButton.Size = UDim2.new(1, -20, 0, 40)
+newAIMButton.Position = UDim2.new(0, 10, 0, 60)
+newAIMButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+newAIMButton.BackgroundTransparency = 1
+newAIMButton.BorderSizePixel = 0
+newAIMButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+newAIMButton.Font = Enum.Font.SourceSans
+newAIMButton.TextSize = 20
+newAIMButton.Text = ""
+newAIMButton.TextXAlignment = Enum.TextXAlignment.Left
+newAIMButton.Parent = sidebar
+
+local newAIMHolder = Instance.new("Frame")
+newAIMHolder.Name = "NewAIMHolder"
+newAIMHolder.Size = UDim2.new(1, 0, 1, 0)
+newAIMHolder.Position = UDim2.new(0, 0, 0, 0)
+newAIMHolder.BackgroundTransparency = 1
+newAIMHolder.Parent = newAIMButton
+
+local newAIMLayout = Instance.new("UIListLayout")
+newAIMLayout.FillDirection = Enum.FillDirection.Horizontal
+newAIMLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+newAIMLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+newAIMLayout.Padding = UDim.new(0, 8)
+newAIMLayout.Parent = newAIMHolder
+
+local newAIMText = Instance.new("TextLabel")
+newAIMText.Name = "NewAIMText"
+newAIMText.Size = UDim2.new(1, 0, 1, 0)
+newAIMText.BackgroundTransparency = 1
+newAIMText.Text = "AIM"
+newAIMText.TextColor3 = Color3.fromRGB(255, 255, 255)
+newAIMText.Font = Enum.Font.SourceSans
+newAIMText.TextSize = 20
+newAIMText.TextXAlignment = Enum.TextXAlignment.Left
+newAIMText.Parent = newAIMHolder
+
 -- Botão ESP
 local espButton = Instance.new("TextButton")
 espButton.Name = "ESPButton"
 espButton.Size = UDim2.new(1, -20, 0, 40)
-espButton.Position = UDim2.new(0, 10, 0, 60)
+espButton.Position = UDim2.new(0, 10, 0, 110)
 espButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 espButton.BackgroundTransparency = 1
 espButton.BorderSizePixel = 0
@@ -245,7 +285,7 @@ espText.Parent = espHolder
 local aimButton = Instance.new("TextButton")
 aimButton.Name = "AIMButton"
 aimButton.Size = UDim2.new(1, -20, 0, 40)
-aimButton.Position = UDim2.new(0, 10, 0, 110)
+aimButton.Position = UDim2.new(0, 10, 0, 210)
 aimButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 aimButton.BackgroundTransparency = 1
 aimButton.BorderSizePixel = 0
@@ -659,6 +699,25 @@ aimTab.Visible = false
 aimTab.CanvasSize = UDim2.new(0, 0, 0, 500)
 aimTab.ScrollBarThickness = 6
 aimTab.Parent = content
+
+-- Aba New AIM
+local newAIMTab = Instance.new("Frame")
+newAIMTab.Name = "NewAIMTab"
+newAIMTab.Size = UDim2.new(1, 0, 1, 0)
+newAIMTab.BackgroundTransparency = 1
+newAIMTab.Visible = false
+newAIMTab.Parent = content
+
+local newAIMTitle = Instance.new("TextLabel")
+newAIMTitle.Name = "NewAIMTitle"
+newAIMTitle.Text = "AIM Configurações"
+newAIMTitle.Size = UDim2.new(1, -20, 0, 30)
+newAIMTitle.Position = UDim2.new(0, 10, 0, 10)
+newAIMTitle.BackgroundTransparency = 1
+newAIMTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+newAIMTitle.Font = Enum.Font.SourceSans
+newAIMTitle.TextSize = 20
+newAIMTitle.Parent = newAIMTab
 
 -- Aba Player
 local playerTab = Instance.new("Frame")
@@ -1396,7 +1455,7 @@ tpText.Parent = aimTab
 createToggleRow(aimTab, 370, "HS Pescoço do uriel", "AIMBot", "UpdateAIMBot")
 
 -- Toggle FFH4X
-createToggleRow(aimTab, 410, "FFH4X", "FFH4X", "UpdateFFH4X")
+createToggleRow(newAIMTab, 50, "FFH4X", "FFH4X", "UpdateFFH4X")
 
 -- Function to update AIM Bot
 _G.UpdateAIMBot = function()
@@ -1583,6 +1642,7 @@ espButton.MouseButton1Click:Connect(function()
 	perfilTab.Visible = false
 	aimTab.Visible = false
 	playerTab.Visible = false
+	newAIMTab.Visible = false
 end)
 
 -- Botão Perfil abre aba Perfil
@@ -1591,6 +1651,7 @@ perfilButton.MouseButton1Click:Connect(function()
 	perfilTab.Visible = true
 	aimTab.Visible = false
 	playerTab.Visible = false
+	newAIMTab.Visible = false
 end)
 
 -- Botão AIM abre aba AIM
@@ -1599,6 +1660,7 @@ aimButton.MouseButton1Click:Connect(function()
 	perfilTab.Visible = false
 	aimTab.Visible = true
 	playerTab.Visible = false
+	newAIMTab.Visible = false
 end)
 
 -- Botão Player abre aba Player
@@ -1607,6 +1669,16 @@ playerButton.MouseButton1Click:Connect(function()
 	perfilTab.Visible = false
 	aimTab.Visible = false
 	playerTab.Visible = true
+	newAIMTab.Visible = false
+end)
+
+-- Botão New AIM abre aba New AIM
+newAIMButton.MouseButton1Click:Connect(function()
+	espTab.Visible = false
+	perfilTab.Visible = false
+	aimTab.Visible = false
+	playerTab.Visible = false
+	newAIMTab.Visible = true
 end)
 
 -- ===== VARIÁVEIS =====
