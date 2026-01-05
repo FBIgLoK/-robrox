@@ -1581,7 +1581,7 @@ _G.UpdateFFH4X = function()
 			return true
 		end
 
-		-- pega o player mais próximo VISÍVEL
+		-- pega o player ou entidade mais próximo VISÍVEL
 		local function getClosestVisiblePlayer()
 			local closestTarget = nil
 			local shortestDistance = math.huge
@@ -1592,21 +1592,41 @@ _G.UpdateFFH4X = function()
 			local myRoot = myChar:FindFirstChild("HumanoidRootPart")
 			if not myRoot then return nil end
 
+			-- Função auxiliar para verificar e adicionar alvo
+			local function checkTarget(character, root, head)
+				if root and head then
+					local distance = (root.Position - myRoot.Position).Magnitude
+					if distance < shortestDistance and distance <= MAX_DISTANCE then
+						if isVisible(head) then
+							shortestDistance = distance
+							closestTarget = head
+						end
+					end
+				end
+			end
+
+			-- Verificar players
 			for _, player in pairs(Players:GetPlayers()) do
 				if player ~= LocalPlayer and player.Character then
 					local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
 					local root = player.Character:FindFirstChild("HumanoidRootPart")
 					local head = player.Character:FindFirstChild(AIM_PART)
 
-					if humanoid and humanoid.Health > 0 and root and head then
-						local distance = (root.Position - myRoot.Position).Magnitude
+					if humanoid and humanoid.Health > 0 then
+						checkTarget(player.Character, root, head)
+					end
+				end
+			end
 
-						if distance < shortestDistance and distance <= MAX_DISTANCE then
-							if isVisible(head) then
-								shortestDistance = distance
-								closestTarget = head
-							end
-						end
+			-- Verificar entidades (NPCs, dummies, etc.) no workspace
+			for _, descendant in pairs(Workspace:GetDescendants()) do
+				if descendant:IsA("Model") and descendant ~= myChar then
+					local humanoid = descendant:FindFirstChildOfClass("Humanoid")
+					local root = descendant:FindFirstChild("HumanoidRootPart")
+					local head = descendant:FindFirstChild(AIM_PART)
+
+					if humanoid and humanoid.Health > 0 then
+						checkTarget(descendant, root, head)
 					end
 				end
 			end
