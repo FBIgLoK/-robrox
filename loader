@@ -1555,6 +1555,9 @@ createToggleRow(newAIMTab, 50, "FFH4X", "FFH4X", "UpdateFFH4X")
 -- Toggle AIM Disfarçado
 createToggleRow(newAIMTab, 90, "AIM Disfarçado", "AIMDisfarcado", "UpdateAIMDisfarcado")
 
+-- Toggle AIM Entidade
+createToggleRow(newAIMTab, 130, "AIM Entidade", "AIMEntidade", "UpdateAIMEntidade")
+
 
 
 -- Function to update AIM Bot
@@ -1719,14 +1722,16 @@ _G.UpdateFFH4X = function()
 			end
 
 			-- Verificar entidades (NPCs, dummies, etc.) no workspace
-			for _, descendant in pairs(Workspace:GetDescendants()) do
-				if descendant:IsA("Model") and descendant ~= myChar then
-					local humanoid = descendant:FindFirstChildOfClass("Humanoid")
-					local root = descendant:FindFirstChild("HumanoidRootPart")
-					local head = descendant:FindFirstChild(AIM_PART)
+			if _G.AIMEntidade then
+				for _, descendant in pairs(Workspace:GetDescendants()) do
+					if descendant:IsA("Model") and descendant ~= myChar then
+						local humanoid = descendant:FindFirstChildOfClass("Humanoid")
+						local root = descendant:FindFirstChild("HumanoidRootPart")
+						local head = descendant:FindFirstChild(AIM_PART)
 
-					if humanoid and humanoid.Health > 0 then
-						checkTarget(descendant, root, head)
+						if humanoid and humanoid.Health > 0 then
+							checkTarget(descendant, root, head)
+						end
 					end
 				end
 			end
@@ -1865,6 +1870,11 @@ _G.UpdateAIMDisfarcado = function()
 							continue
 						end
 
+						-- If AIM Entidade is not active, skip non-players
+						if not _G.AIMEntidade and not Players:GetPlayerFromCharacter(model) then
+							continue
+						end
+
 						local dist = (root.Position - myRoot.Position).Magnitude
 						if dist <= MAX_DISTANCE then
 							if insideFOV(head.Position) and isVisible(head) then
@@ -1911,6 +1921,19 @@ _G.UpdateAIMDisfarcado = function()
 			_G.AIMDisfarcadoConnection = nil
 		end
 	end
+end
+
+-- Function to update AIM Entidade
+_G.UpdateAIMEntidade = function()
+	if _G.AIMEntidade then
+		print("AIM Entidade enabled - AIMs will target players only")
+	else
+		print("AIM Entidade disabled - AIMs will target players and entities")
+	end
+	-- Refresh active AIMs
+	if _G.FFH4X then _G.UpdateFFH4X() end
+	if _G.AIMDisfarcado then _G.UpdateAIMDisfarcado() end
+	if _G.AIMBot then _G.UpdateAIMBot() end
 end
 
 
