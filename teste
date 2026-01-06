@@ -1,78 +1,115 @@
+-- Serviços
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local Workspace = game:GetService("Workspace")
+local localPlayer = Players.LocalPlayer
+local playerGui = localPlayer:WaitForChild("PlayerGui")
 
-local LocalPlayer = Players.LocalPlayer
-local Camera = Workspace.CurrentCamera
+-- Tela principal do menu
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "DynamicHeadMenu"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
 
-local AIM_PART = "Head"
-local MAX_DISTANCE = 2000
+-- Frame do menu
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 250, 0, 150)
+frame.Position = UDim2.new(0.75, -125, 0.5, -75) -- mais pra direita
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
 
--- Raycast params
-local rayParams = RaycastParams.new()
-rayParams.FilterType = Enum.RaycastFilterType.Blacklist
-rayParams.IgnoreWater = true
+local uic = Instance.new("UICorner")
+uic.CornerRadius = UDim.new(0, 10)
+uic.Parent = frame
 
--- verifica se o alvo está visível (sem parede)
-local function isVisible(targetPart)
-	local origin = Camera.CFrame.Position
-	local direction = (targetPart.Position - origin)
+-- Título
+local title = Instance.new("TextLabel")
+title.Text = "Aplicar Cabeça R15"
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 20
+title.Parent = frame
 
-	rayParams.FilterDescendantsInstances = {
-		LocalPlayer.Character,
-		targetPart.Parent
-	}
+-- Botão aplicar cabeça
+local applyButton = Instance.new("TextButton")
+applyButton.Text = "Aplicar Cabeça"
+applyButton.Size = UDim2.new(0, 200, 0, 40)
+applyButton.Position = UDim2.new(0.5, -100, 0, 60)
+applyButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+applyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+applyButton.Font = Enum.Font.SourceSans
+applyButton.TextSize = 18
+applyButton.Parent = frame
 
-	local rayResult = Workspace:Raycast(origin, direction, rayParams)
+local cornerBtn = Instance.new("UICorner")
+cornerBtn.CornerRadius = UDim.new(0, 8)
+cornerBtn.Parent = applyButton
 
-	if rayResult then
-		-- se bateu em algo que NÃO é o player, tem parede
-		if not rayResult.Instance:IsDescendantOf(targetPart.Parent) then
-			return false
-		end
-	end
+-- Botão resetar cabeça
+local resetButton = Instance.new("TextButton")
+resetButton.Text = "Resetar Cabeça"
+resetButton.Size = UDim2.new(0, 200, 0, 40)
+resetButton.Position = UDim2.new(0.5, -100, 0, 110)
+resetButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+resetButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+resetButton.Font = Enum.Font.SourceSans
+resetButton.TextSize = 18
+resetButton.Parent = frame
 
-	return true
+local cornerReset = Instance.new("UICorner")
+cornerReset.CornerRadius = UDim.new(0, 8)
+cornerReset.Parent = resetButton
+
+-- Função para aplicar a cabeça dinâmica
+local function applyDynamicHead()
+    local character = localPlayer.Character
+    if not character then return end
+    local head = character:FindFirstChild("Head")
+    if not head then return end
+
+    -- Remove faces antigas
+    for _, face in pairs(head:GetChildren()) do
+        if face:IsA("Decal") then
+            face:Destroy()
+        end
+    end
+
+    -- IDs da cabeça dinâmica
+    local meshId = "rbxassetid://108052524034650"  -- Mesh do Dynamic Head
+    local textureId = "rbxassetid://108052524034650"  -- Textura (mesmo ID)
+
+    -- Remove meshes antigos
+    for _, m in pairs(head:GetChildren()) do
+        if m:IsA("SpecialMesh") then
+            m:Destroy()
+        end
+    end
+
+    -- Criar novo mesh
+    local mesh = Instance.new("SpecialMesh")
+    mesh.MeshType = Enum.MeshType.FileMesh
+    mesh.MeshId = meshId
+    mesh.TextureId = textureId
+    mesh.Scale = Vector3.new(1,1,1) -- ajuste se necessário
+    mesh.Parent = head
 end
 
--- pega o player mais próximo VISÍVEL
-local function getClosestVisiblePlayer()
-	local closestTarget = nil
-	local shortestDistance = math.huge
+-- Função para resetar a cabeça
+local function resetHead()
+    local character = localPlayer.Character
+    if not character then return end
+    local head = character:FindFirstChild("Head")
+    if not head then return end
 
-	local myChar = LocalPlayer.Character
-	if not myChar then return nil end
-
-	local myRoot = myChar:FindFirstChild("HumanoidRootPart")
-	if not myRoot then return nil end
-
-	for _, player in pairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer and player.Character then
-			local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-			local root = player.Character:FindFirstChild("HumanoidRootPart")
-			local head = player.Character:FindFirstChild(AIM_PART)
-
-			if humanoid and humanoid.Health > 0 and root and head then
-				local distance = (root.Position - myRoot.Position).Magnitude
-
-				if distance < shortestDistance and distance <= MAX_DISTANCE then
-					if isVisible(head) then
-						shortestDistance = distance
-						closestTarget = head
-					end
-				end
-			end
-		end
-	end
-
-	return closestTarget
+    -- Remove meshes e decals antigos
+    for _, child in pairs(head:GetChildren()) do
+        if child:IsA("SpecialMesh") or child:IsA("Decal") then
+            child:Destroy()
+        end
+    end
 end
 
--- LOOP PRINCIPAL
-RunService.RenderStepped:Connect(function()
-	local targetHead = getClosestVisiblePlayer()
-	if targetHead then
-		local camPos = Camera.CFrame.Position
-		Camera.CFrame = CFrame.new(camPos, targetHead.Position)
-	end
-end)
+-- Conectar botões
+applyButton.MouseButton1Click:Connect(applyDynamicHead)
+resetButton.MouseButton1Click:Connect(resetHead)
